@@ -1,0 +1,830 @@
+[
+  {
+    "name": "Panthenol",
+    "purpose": "Humectant, Soothing Agent",
+    "description": "A provitamin of B5 that attracts moisture to the skin and aids in barrier repair. It has proven anti-inflammatory properties that help soothe irritated skin and promote wound healing.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Methoxyphenylimino Dimethylcyclohexenyl Ethyl Glycinate",
+    "purpose": "Light Stabilizer",
+    "description": "A specialized chemical ingredient often used in sunscreens to stabilize Avobenzone against degradation by sunlight. It ensures that UV protection remains effective throughout the duration of wear.",
+    "safety_score": 2,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Glycyrrhiza Glabra  Root Extract",
+    "purpose": "Cosmetic Ingredient",
+    "description": "Glycyrrhiza Glabra  Root Extract is used in cosmetic products.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Simmondsia Chinensis Seed Oil",
+    "purpose": "Emollient",
+    "description": "Known as jojoba oil, it is structurally similar to human sebum, allowing it to moisturize the skin without leaving a heavy, greasy residue. It helps to balance oil production and soften the skin barrier.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Acetyl Glucosamine",
+    "purpose": "Skin Conditioning",
+    "description": "A skin-identical sugar derivative that helps boost hyaluronic acid production and supports barrier function. It is frequently used to fade dark spots and improve overall skin texture.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Copper Palmitoyl Heptapeptide-14",
+    "purpose": "Anti-aging Peptide",
+    "description": "A signal peptide bonded with copper that helps stimulate collagen and elastin production in the dermis. It supports firmer, more resilient skin by promoting natural repair processes.",
+    "safety_score": 2,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Retinol",
+    "purpose": "Cell Communicating",
+    "description": "A form of Vitamin A that accelerates cell turnover and stimulates collagen synthesis to reduce fine lines and wrinkles. It is highly effective for anti-aging and acne treatment but can cause initial sensitivity.",
+    "safety_score": 4,
+    "concerns": [
+      "irritation",
+      "photosensitivity"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Aminomethyl Propanol",
+    "purpose": "pH Adjuster",
+    "description": "An alkaline ingredient used to balance the pH of cosmetic formulas to ensure stability and compatibility. It is commonly found in hair styling products and gels to maintain effective product performance.",
+    "safety_score": 3,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "New on INCIDecoder",
+    "purpose": "Placeholder",
+    "description": "This is not a chemical ingredient but rather a website notification label often mistakenly scraped as data. It provides no biological or cosmetic benefit to the skin.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Camellia Sinensis Leaf Extract",
+    "purpose": "Antioxidant",
+    "description": "Derived from green tea, this extract is rich in polyphenols like EGCG that protect the skin against UV-induced oxidative stress. It is widely used for its soothing properties and ability to reduce redness.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Dilinoleic Acid/​Propanediol Copolymer",
+    "purpose": "Cosmetic Ingredient",
+    "description": "Dilinoleic Acid/​Propanediol Copolymer is used in cosmetic products.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Hydroxypinacolone Retinoate",
+    "purpose": "Anti-aging",
+    "description": "An ester of retinoic acid, this ingredient works by binding directly to retinoid receptors without needing conversion. It promotes cell turnover and collagen production, offering anti-aging benefits with less irritation than traditional retinol.",
+    "safety_score": 2,
+    "concerns": [
+      "irritation",
+      "photosensitivity"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Squalene",
+    "purpose": "Emollient",
+    "description": "A natural lipid that mimics the skin's sebum to provide intense hydration and barrier support. It helps soften the skin and prevents moisture loss without leaving a heavy, greasy residue.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Acetyl Hexapeptide-8",
+    "purpose": "Anti-aging",
+    "description": "Often referred to as a topical alternative to Botox, this peptide inhibits signals that cause facial muscles to contract. By reducing muscle movement, it helps smooth the appearance of fine lines and wrinkles.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Niacinamide",
+    "purpose": "Skin conditioner",
+    "description": "Also known as Vitamin B3, this versatile ingredient improves skin texture, reduces redness, and regulates oil production. It also strengthens the skin barrier and helps minimize the appearance of enlarged pores.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Rosa Damascena Flower Oil",
+    "purpose": "Fragrance/Soothing",
+    "description": "This essential oil is used for its pleasant scent and antioxidant properties. It can help soothe skin inflammation, though it contains natural fragrance components that may trigger sensitivity in some individuals.",
+    "safety_score": 4,
+    "concerns": [
+      "contact dermatitis",
+      "irritation"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Palmitoyl Tripeptide-1",
+    "purpose": "Anti-aging",
+    "description": "A synthetic messenger peptide that stimulates collagen and hyaluronic acid production in the skin. It helps repair the skin matrix, leading to firmer, more elastic skin over time.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Allantoin",
+    "purpose": "Soothing agent",
+    "description": "Derived from the comfrey plant, allantoin is a powerful skin-soothing agent that promotes healing and cell regeneration. It is commonly used to calm irritated or sensitive skin.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Alcohol and Alcohol Denat.",
+    "purpose": "Solvent/Penetration enhancer",
+    "description": "These alcohols are used to dissolve ingredients and help the product absorb quickly into the skin. High concentrations can strip the skin of natural oils, leading to dryness and irritation over time.",
+    "safety_score": 3,
+    "concerns": [
+      "dryness",
+      "irritation"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Sodium Ascorbyl Phosphate",
+    "purpose": "Antioxidant",
+    "description": "A stable, water-soluble form of Vitamin C that helps brighten the complexion and protect the skin from free radical damage. It is generally gentler on the skin than pure L-Ascorbic acid.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Hyaluronic Acid",
+    "purpose": "Humectant",
+    "description": "A naturally occurring glycosaminoglycan that acts as a powerful moisture binder. It attracts and retains water in the skin, providing deep hydration and a plumping effect that reduces the appearance of fine lines.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Vitis Vinifera Seed Extract",
+    "purpose": "Antioxidant",
+    "description": "An extract derived from grape seeds that is rich in polyphenols and proanthocyanidins. It helps protect the skin from oxidative stress caused by environmental free radicals and supports a more even skin tone.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Sodium Hyaluronate",
+    "purpose": "Humectant",
+    "description": "The salt form of hyaluronic acid with a smaller molecular structure, allowing for better skin penetration. It provides intense hydration and helps restore the skin's moisture barrier.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Maleated Soybean Oil Glyceryl/​Octyldodecanol Esters",
+    "purpose": "Cosmetic Ingredient",
+    "description": "Maleated Soybean Oil Glyceryl/​Octyldodecanol Esters is used in cosmetic products.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Phytosteryl Sunflowerseedate",
+    "purpose": "Emollient",
+    "description": "A lipid mixture derived from sunflower seeds that mimics the skin's natural barrier components. It provides excellent moisturizing properties, improves skin barrier integrity, and enhances formula spreadability.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Alcohol Denat.",
+    "purpose": "Solvent/Astringent",
+    "description": "A denatured alcohol used to thin product consistency and provide a cooling effect upon application. It can be drying and stripping to the skin barrier if used in high concentrations.",
+    "safety_score": 3,
+    "concerns": [
+      "irritation",
+      "dryness"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Triolein",
+    "purpose": "Emollient",
+    "description": "A triglyceride derived from plant oils that acts as an effective skin-softening agent. It helps to smooth the surface of the skin and prevent transepidermal water loss.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Ascorbyl Glucoside",
+    "purpose": "Antioxidant",
+    "description": "A stable, water-soluble form of Vitamin C that converts to ascorbic acid upon penetration. It brightens the complexion, boosts collagen production, and protects skin from UV-induced free radical damage.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Ceramide EOP",
+    "purpose": "Skin Conditioning",
+    "description": "A structural lipid that forms an essential part of the skin's moisture barrier. It helps to restore the skin's protective function, keeping pollutants out and essential moisture in.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Castor Oil/​IPDI Copolymer",
+    "purpose": "Cosmetic Ingredient",
+    "description": "Castor Oil/​IPDI Copolymer is used in cosmetic products.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Menthyl Lactate",
+    "purpose": "Cooling Agent",
+    "description": "A derivative of menthol and lactic acid that provides a long-lasting, refreshing cooling sensation on the skin. It is often used to soothe irritation and provide a cooling effect without the high potency or irritation potential of pure menthol.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Lactococcus Ferment Lysate",
+    "purpose": "Skin Conditioner",
+    "description": "A probiotic-derived ingredient obtained from the fermentation of Lactococcus lactis. It supports the skin's natural microbiome and strengthens the barrier function, promoting healthier, more resilient skin.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Linolenic Acid",
+    "purpose": "Emollient",
+    "description": "An essential omega-3 fatty acid that helps maintain the skin's lipid barrier. It provides anti-inflammatory benefits and helps improve skin texture and moisture retention.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Oleic Acid",
+    "purpose": "Emollient",
+    "description": "A naturally occurring fatty acid that helps to soften and condition the skin while enhancing the penetration of other ingredients. However, it can disrupt the skin barrier in some individuals and may be comedogenic for acne-prone skin.",
+    "safety_score": 1,
+    "concerns": [
+      "comedogenic"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Benzyl Alcohol",
+    "purpose": "Preservative",
+    "description": "An organic alcohol used primarily to prevent microbial growth in cosmetic formulations. While effective, it is a known fragrance allergen and can cause contact dermatitis in sensitive individuals.",
+    "safety_score": 5,
+    "concerns": [
+      "contact dermatitis",
+      "irritation"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Tocopherol",
+    "purpose": "Antioxidant",
+    "description": "Also known as Vitamin E, it protects the skin from free radical damage caused by UV radiation and pollution. It also has moisturizing properties and helps to stabilize formulations.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Ammonium Lauryl Sulfate",
+    "purpose": "Surfactant",
+    "description": "A potent cleansing agent used to remove dirt and oil from the skin's surface. Due to its high cleansing efficacy, it can be stripping and potentially irritating to dry or sensitive skin.",
+    "safety_score": 3,
+    "concerns": [
+      "irritation",
+      "dryness"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Cetyl Lactate",
+    "purpose": "Emollient",
+    "description": "A mixture of cetyl alcohol and lactic acid that serves as a skin conditioning agent. It helps to soften the skin and provides a smooth, non-greasy finish to cosmetic products.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Gluconolactone",
+    "purpose": "Exfoliant",
+    "description": "A polyhydroxy acid (PHA) that gently exfoliates the skin by promoting cell turnover. It is larger in molecular size than AHAs, making it less irritating and more hydrating for sensitive skin types.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Rosa Rubiginosa Seed Oil",
+    "purpose": "Skin Conditioner",
+    "description": "Commonly known as Rosehip oil, it is rich in essential fatty acids and antioxidants. It helps to improve skin tone, reduce the appearance of scars, and deeply hydrate the skin.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Opuntia Ficus-Indica Extract",
+    "purpose": "Skin Conditioning",
+    "description": "Derived from the prickly pear cactus, this extract is rich in antioxidants, vitamins, and fatty acids. It hydrates, soothes redness, and helps protect the skin barrier against environmental stressors.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Salicylic Acid",
+    "purpose": "Exfoliant",
+    "description": "A beta-hydroxy acid (BHA) that penetrates deep into pores to dissolve excess oil and dead skin cells. It is highly effective at treating acne and preventing breakouts.",
+    "safety_score": 3,
+    "concerns": [
+      "irritation",
+      "dryness"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Ascorbic Acid",
+    "purpose": "Antioxidant",
+    "description": "Also known as Vitamin C, this potent antioxidant brightens the complexion and stimulates collagen production. It helps neutralize free radicals caused by UV exposure and pollution.",
+    "safety_score": 2,
+    "concerns": [
+      "irritation"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Azelaic Acid",
+    "purpose": "Anti-acne agent",
+    "description": "A dicarboxylic acid that helps reduce inflammation, kill acne-causing bacteria, and fade hyperpigmentation. It is well-tolerated and helps improve skin texture and tone.",
+    "safety_score": 1,
+    "concerns": [
+      "irritation"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Biosaccharide Gum-1",
+    "purpose": "Humectant",
+    "description": "A polysaccharide produced through bacterial fermentation that provides long-lasting hydration. It forms a breathable film on the skin, soothing irritation and improving overall skin comfort.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Aluminum Starch Octenylsuccinate",
+    "purpose": "Absorbent",
+    "description": "A modified starch derivative used to absorb excess sebum and create a matte finish. It prevents the product from feeling greasy and improves the texture of creams and lotions.",
+    "safety_score": 2,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Hydrogenated Vegetable Glycerides",
+    "purpose": "Emollient",
+    "description": "These fatty acid esters act as skin-conditioning agents that soften and smooth the surface. They help replenish the skin barrier and prevent transepidermal water loss.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Copper Tripeptide-1",
+    "purpose": "Skin repair",
+    "description": "A peptide complex that promotes the production of collagen and elastin in the skin. It supports the natural healing process and can improve skin firmness and elasticity over time.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Menthone Glycerin Acetal",
+    "purpose": "Cooling agent",
+    "description": "A derivative of menthol that provides a long-lasting, refreshing cooling sensation without the strong odor or high volatility of pure menthol. It is often used to soothe skin during product application.",
+    "safety_score": 2,
+    "concerns": [
+      "irritation"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Hydrolyzed Hyaluronic Acid",
+    "purpose": "Humectant",
+    "description": "A low-molecular-weight form of hyaluronic acid capable of penetrating deeper into the skin layers. It attracts and retains water to deeply hydrate and plump the appearance of fine lines.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Black 2",
+    "purpose": "Colorant",
+    "description": "A carbon-based pigment used to provide deep black color to cosmetic formulations like eyeliners and mascaras. It is chemically inert and serves purely aesthetic functions in products.",
+    "safety_score": 3,
+    "concerns": [
+      "irritation"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Sodium Acrylates Crosspolymer-2",
+    "purpose": "Texture Enhancer",
+    "description": "A synthetic polymer used as a thickening agent and stabilizer in liquid formulas. It improves the sensory profile of products by providing a smooth, non-tacky finish on the skin.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Tretinoin",
+    "purpose": "Active Ingredient",
+    "description": "A potent retinoid that accelerates cell turnover and stimulates collagen production. It is highly effective for treating acne, fine lines, and hyperpigmentation.",
+    "safety_score": 5,
+    "concerns": [
+      "irritation",
+      "photosensitivity"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Retinyl Palmitate",
+    "purpose": "Skin Conditioning",
+    "description": "A milder ester of retinol that converts to vitamin A within the skin to support surface cell renewal. It acts as an antioxidant and helps improve skin texture and tone.",
+    "safety_score": 4,
+    "concerns": [
+      "photosensitivity"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Linoleic Acid",
+    "purpose": "Skin Conditioning",
+    "description": "An essential omega-6 fatty acid that strengthens the skin barrier and regulates sebum production. It is particularly beneficial for acne-prone skin as it helps reduce pore clogging.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Tetrahexyldecyl Ascorbate",
+    "purpose": "Antioxidant",
+    "description": "A lipid-soluble, stable form of Vitamin C that penetrates the skin effectively to brighten the complexion. It neutralizes free radicals and promotes collagen synthesis without causing irritation.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Lactic Acid",
+    "purpose": "Exfoliant",
+    "description": "An alpha-hydroxy acid (AHA) that gently removes dead skin cells from the surface and provides hydration. It improves skin texture and brightens the complexion by encouraging cell turnover.",
+    "safety_score": 2,
+    "concerns": [
+      "irritation",
+      "photosensitivity"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Butylene Glycol",
+    "purpose": "Humectant",
+    "description": "A solvent and humectant that pulls moisture into the skin while improving the spreadability of products. It helps maintain skin hydration and enhances the delivery of other active ingredients.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Glycerin",
+    "purpose": "Humectant",
+    "description": "A natural skin-identical ingredient that attracts water to the skin's surface and keeps it hydrated. It supports a healthy moisture barrier and is compatible with all skin types.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Hydroxypropyl Cyclodextrin",
+    "purpose": "Stabilizer",
+    "description": "A cyclic oligosaccharide used to encapsulate volatile or unstable active ingredients to protect them from degradation. It ensures the potency and shelf-life of delicate cosmetic formulations.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Benzyl Salicylate",
+    "purpose": "Fragrance ingredient",
+    "description": "Used primarily to impart a floral scent to cosmetic products. It can also act as a UV light absorber to help protect the formula from degradation.",
+    "safety_score": 7,
+    "concerns": [
+      "contact dermatitis",
+      "irritation"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Bis-Diglyceryl Polyacyladipate-2",
+    "purpose": "Skin conditioning",
+    "description": "A synthetic emollient used as a plant-derived alternative to lanolin. It helps to soften and smooth the skin while forming a protective barrier to prevent moisture loss.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Benzyl Benzoate",
+    "purpose": "Solvent and fragrance",
+    "description": "Used as a solvent to dissolve other ingredients or as a fragrance component. It is known to have some antimicrobial properties but may be sensitizing to certain skin types.",
+    "safety_score": 5,
+    "concerns": [
+      "contact dermatitis",
+      "irritation"
+    ],
+    "sources": [
+      "cosmeticsinfo"
+    ]
+  },
+  {
+    "name": "Palmitoyl Tetrapeptide-7",
+    "purpose": "Anti-aging agent",
+    "description": "A synthetic peptide that helps reduce skin inflammation and the subsequent breakdown of extracellular matrix. It supports skin repair and is often used to improve skin firmness.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Argania Spinosa Kernel Oil",
+    "purpose": "Emollient",
+    "description": "A plant oil rich in fatty acids and vitamin E that provides deep hydration and nourishment. It helps restore the skin barrier and protects against environmental oxidative stress.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Tetrapeptide-21",
+    "purpose": "Skin conditioning",
+    "description": "A synthetic peptide designed to stimulate collagen production and improve the appearance of skin tone. It helps reduce the look of fine lines and enhances overall skin elasticity.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Beta-Glucan",
+    "purpose": "Humectant",
+    "description": "A polysaccharide derived from yeast, oats, or fungi that effectively binds water to the skin. It also provides soothing properties and helps stimulate the skin's natural repair mechanisms.",
+    "safety_score": 1,
+    "concerns": [
+      "none"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  },
+  {
+    "name": "Citric Acid",
+    "purpose": "pH adjuster",
+    "description": "An alpha-hydroxy acid used to balance the pH level of products to ensure stability and compatibility with skin. In lower concentrations, it acts as a gentle exfoliant and antioxidant.",
+    "safety_score": 2,
+    "concerns": [
+      "irritation"
+    ],
+    "sources": [
+      "incidecoder"
+    ]
+  }
+]

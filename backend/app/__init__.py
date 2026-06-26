@@ -1,0 +1,1 @@
+# AishIngAnalyzer app package

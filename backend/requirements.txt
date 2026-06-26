@@ -1,0 +1,36 @@
+# FastAPI Core
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Authentication & Security
+python-jose[cryptography]
+passlib[bcrypt]
+python-dotenv==1.0.0
+pydantic>=2.0.0
+pydantic-settings
+
+# Database & Cache
+redis==5.0.1
+qdrant-client==1.7.3
+
+# Existing Dependencies (from original project)
+langgraph==0.0.28
+langchain==0.1.0
+langchain-google-genai==0.0.6
+google-generativeai==0.3.2
+tavily-python==0.3.3
+sentence-transformers==2.2.2
+
+# OCR & File Processing
+pytesseract==0.3.10
+Pillow==10.1.0
+
+# Utilities
+tenacity==8.2.3
+tqdm==4.66.1
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
