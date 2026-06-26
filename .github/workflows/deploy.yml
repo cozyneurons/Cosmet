@@ -5,66 +5,87 @@ on:
     branches: [main]
 
 jobs:
+  # ─── Backend ────────────────────────────────────────────────────────────────
   test-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
       - name: Install dependencies
         run: |
           cd backend
           pip install -r requirements.txt
+
       - name: Run tests
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
         run: |
           cd backend
           PYTHONPATH=. pytest
 
+  deploy-backend:
+    needs: test-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        # Uses the official Render deploy hook URL stored as a secret.
+        # Get it from: Render dashboard → your service → Settings → Deploy Hook
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" | grep -q "^2" \
+            && echo "Deploy triggered successfully" \
+            || (echo "Deploy hook failed" && exit 1)
+
+  # ─── Frontend ───────────────────────────────────────────────────────────────
   test-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
+
       - name: Install dependencies
         run: |
           cd frontend
           npm ci
+
       - name: Run Jest tests
         run: |
           cd frontend
           npm run test -- --passWithNoTests
+
       - name: Build check
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
           cd frontend
           npm run build
 
-  deploy-backend:
-    needs: [test-backend, test-frontend]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to Render
-        uses: thomasapanici/render-deploy@v1.0.0
-        with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
-          render-api-key: ${{ secrets.RENDER_API_KEY }}
-
   deploy-frontend:
-    needs: [test-backend, test-frontend]
+    needs: test-frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
+          working-directory: ./frontend
