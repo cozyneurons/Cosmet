@@ -16,9 +16,9 @@ qdrant-client==1.7.3
 
 # Existing Dependencies (from original project)
 langgraph==0.0.28
-langchain==0.1.0
-langchain-google-genai==0.0.6
-google-generativeai==0.3.2
+langchain==0.3.26
+langchain-google-genai==2.1.7
+google-generativeai==0.7.2
 tavily-python==0.3.3
 sentence-transformers==2.2.2
 
