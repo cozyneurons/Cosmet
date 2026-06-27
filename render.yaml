@@ -2,7 +2,7 @@ services:
   - type: web
     name: cosmet-api
     env: docker
-    dockerContext: backend
+    dockerContext: .
     dockerfilePath: Dockerfile
     envVars:
       - key: PORT
