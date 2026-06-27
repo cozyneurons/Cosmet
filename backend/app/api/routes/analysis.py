@@ -153,7 +153,7 @@ async def export_analysis(
         styles = getSampleStyleSheet()
         story = []
         
-        story.append(Paragraph("Cosmate - Safety Analysis Report", styles['Title']))
+        story.append(Paragraph("Cosmet - Safety Analysis Report", styles['Title']))
         story.append(Spacer(1, 12))
         
         # Convert markdown to plain text

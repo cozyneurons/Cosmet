@@ -9,7 +9,7 @@ load_dotenv()
 class Settings(BaseSettings):
     # API Configuration
     API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Cosmate API"
+    PROJECT_NAME: str = "Cosmet API"
     VERSION: str = "1.0.0"
     
     # Security

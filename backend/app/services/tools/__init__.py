@@ -1,5 +1,5 @@
 """
-Tools package for Cosmate
+Tools package for Cosmet
 """
 
 from .mcp_tools import IngredientTools, get_tools

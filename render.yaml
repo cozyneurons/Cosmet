@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: cosmate-api
+    name: cosmet-api
     env: python
     # Render discovers render.yaml only at the repo root.
     # We use "cd backend &&" so all commands run relative to the backend dir,
