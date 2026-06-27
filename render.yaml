@@ -1,14 +1,12 @@
 services:
-  # ⚠️  NOTE: Render only reads render.yaml from the REPOSITORY ROOT.
-  # This file (backend/render.yaml) is NOT picked up by Render.
-  # The active Render config is at /render.yaml (repo root).
-  # This file is kept for reference only.
   - type: web
     name: aishinganalyzer-api
     env: python
-    rootDir: ./backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # Render discovers render.yaml only at the repo root.
+    # We use "cd backend &&" so all commands run relative to the backend dir,
+    # where requirements.txt and the app/ package actually live.
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PORT
         value: 8000
