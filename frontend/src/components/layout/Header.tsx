@@ -24,7 +24,7 @@ export default function Header() {
           <div className="bg-indigo-600 p-2 rounded-lg text-white">
             <Sparkles className="h-5 w-5" />
           </div>
-          <span className="text-xl font-bold text-indigo-950 tracking-tight">Cosmix</span>
+          <span className="text-xl font-bold text-indigo-950 tracking-tight">Cosmet</span>
         </div>
         
         {user && (

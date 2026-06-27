@@ -1,1 +1,1 @@
-# AishIngAnalyzer app package
+# Cosmate app package

@@ -67,7 +67,7 @@ class AnalysisState(TypedDict):
     # ==========================================
     research_attempts: int
     analysis_attempts: int
-    max_retries: int  # Default: 2
+    max_retries: int  # Default: 5
 
     # ==========================================
     # WORKFLOW CONTROL
@@ -148,7 +148,7 @@ def create_initial_state(
         # Retry management
         "research_attempts": 0,
         "analysis_attempts": 0,
-        "max_retries": 2,
+        "max_retries": 5,
 
         # Workflow control
         "next_agent": "research",

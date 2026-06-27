@@ -1,6 +1,6 @@
-# Cosmix - Deployment Guide
+# Cosmet - Deployment Guide
 
-This guide details the step-by-step instructions for deploying the migrated **Cosmix** (Cosmetic Ingredient Analyzer) system to production, featuring a Next.js (React + TypeScript) frontend and a FastAPI backend.
+This guide details the step-by-step instructions for deploying the **Cosmet** (Cosmetic Ingredient Analyzer) system to production, featuring a Next.js (React + TypeScript) frontend and a FastAPI backend.
 
 ---
 
@@ -55,7 +55,7 @@ Ensure the following deployment files are present:
 3. Click **New** > **Web Service**.
 4. Connect your GitHub repository.
 5. In the service configuration settings:
-   - **Name**: `cosmix-api` (or custom name)
+   - **Name**: `cosmet-api` (or custom name)
    - **Root Directory**: `backend`
    - **Runtime**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
@@ -72,10 +72,10 @@ Ensure the following deployment files are present:
 | `QDRANT_API_KEY` | *(Your Qdrant API key)* | Authn key for vector store access |
 | `REDIS_URL` | `redis://default:password@endpoint:port` | Redis connection URL |
 | `LANGSMITH_API_KEY` | *(Optional, LangSmith key)* | For tracking agent execution |
-| `LANGSMITH_PROJECT` | `cosmix` | Project identifier for LangSmith traces |
+| `LANGSMITH_PROJECT` | `cosmet` | Project identifier for LangSmith traces |
 | `SENTRY_DSN` | *(Optional, Sentry client key)* | Sentry client integration DSN |
 
-7. Click **Deploy Web Service**. Render will build the environment and host it at `https://cosmix-api.onrender.com`.
+7. Click **Deploy Web Service**. Render will build the environment and host it at `https://cosmet-api.onrender.com`.
 
 ---
 
@@ -93,8 +93,8 @@ The frontend project includes `frontend/vercel.json` defining Next.js configurat
   "installCommand": "npm install",
   "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://cosmix-api.onrender.com",
-    "NEXT_PUBLIC_WS_URL": "wss://cosmix-api.onrender.com"
+    "NEXT_PUBLIC_API_URL": "https://cosmet-api.onrender.com",
+    "NEXT_PUBLIC_WS_URL": "wss://cosmet-api.onrender.com"
   }
 }
 ```
@@ -107,9 +107,9 @@ The frontend project includes `frontend/vercel.json` defining Next.js configurat
    - **Framework Preset**: `Next.js`
    - **Build and Output Settings**: Leave as defaults.
 4. Add the **Environment Variables** in the Vercel project dashboard:
-   - `NEXT_PUBLIC_API_URL`: `https://cosmix-api.onrender.com` (Your Render backend HTTPS URL)
-   - `NEXT_PUBLIC_WS_URL`: `wss://cosmix-api.onrender.com` (Your Render backend WSS WebSocket URL)
-5. Click **Deploy**. Vercel will build the Next.js pages and host the frontend at `https://cosmix.vercel.app`.
+   - `NEXT_PUBLIC_API_URL`: `https://cosmet-api.onrender.com` (Your Render backend HTTPS URL)
+   - `NEXT_PUBLIC_WS_URL`: `wss://cosmet-api.onrender.com` (Your Render backend WSS WebSocket URL)
+5. Click **Deploy**. Vercel will build the Next.js pages and host the frontend at `https://cosmet.vercel.app`.
 
 ---
 
@@ -122,7 +122,7 @@ Both Vercel and Render automatically configure free managed Let's Encrypt SSL/TL
 In `backend/app/core/config.py`, verify that backend origins align with your production URL:
 ```python
 BACKEND_CORS_ORIGINS = [
-    "https://cosmix.vercel.app",
+    "https://cosmet.vercel.app",
     "https://your-custom-domain.com"
 ]
 ```
@@ -134,7 +134,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["cosmix-api.onrender.com", "your-custom-domain.com", "127.0.0.1", "localhost"]
+    allowed_hosts=["cosmet-api.onrender.com", "your-custom-domain.com", "127.0.0.1", "localhost"]
 )
 ```
 

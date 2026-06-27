@@ -33,7 +33,7 @@ app.include_router(websocket.router, prefix=f"{settings.API_V1_STR}/ws", tags=["
 @app.get("/")
 async def root():
     return {
-        "message": "AishIngAnalyzer API",
+        "message": "Cosmet API",
         "version": settings.VERSION,
         "docs": "/docs"
     }

@@ -1,4 +1,4 @@
-# Cosmix - Cosmetic Ingredient Analyzer
+# Cosmet - Cosmetic Ingredient Analyzer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
@@ -30,7 +30,7 @@ From 20 minutes of manual research to 10 seconds of validated, personalized anal
 
 ## 🎯 Overview
 
-**Cosmix** is a multi-agent AI system built for the AI Agents Intensive Capstone Project. It demonstrates true agentic behavior through autonomous decision-making, self-correction, and dynamic workflow orchestration. 
+**Cosmet** is a multi-agent AI system that analyzes cosmetic ingredients in seconds, delivering personalized safety assessments based on your skin type and allergen profile. It demonstrates true agentic behavior through autonomous decision-making, self-correction, and dynamic workflow orchestration.
 
 It was originally built as a Streamlit MVP and has been migrated to a modern, decoupled production architecture featuring a high-performance **FastAPI backend** and a premium, responsive **Next.js (React + TypeScript)** frontend.
 
@@ -92,7 +92,7 @@ It was originally built as a Streamlit MVP and has been migrated to a modern, de
 ## 📁 Project Structure
 
 ```
-Cosmix/
+Cosmet/
 ├── backend/                      # FastAPI API server
 │   ├── app/
 │   │   ├── api/                  # Auth and analysis API routes
@@ -239,7 +239,7 @@ Run the root integration test shell script, which automatically verifies backend
 
 ## 📦 Deployment
 
-Complete step-by-step setup, custom domains, monitoring, and cost considerations are documented in [DEPLOYMENT.md](file:///Users/shubhamkumar/Desktop/Cosmix%202/DEPLOYMENT.md).
+Complete step-by-step setup, custom domains, monitoring, and cost considerations are documented in [DEPLOYMENT.md](file:///Users/shubhamkumar/Desktop/Cosmet/DEPLOYMENT.md).
 
 - **Backend**: Deploys to Render via Web Services (linked via `backend/Procfile` and `backend/render.yaml`).
 - **Frontend**: Deploys to Vercel (linked via `frontend/vercel.json`).
@@ -257,4 +257,4 @@ Complete step-by-step setup, custom domains, monitoring, and cost considerations
   - [cosmeticsinfo.org](https://www.cosmeticsinfo.org/) - Safety information.
   - [EWG Skin Deep](https://www.ewg.org/skindeep/) - Safety scores and ratings.
 
-*Built with ❤️ for the AI Agents Intensive Capstone Project*
+*Built with ❤️ by Cosmet*

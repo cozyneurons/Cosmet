@@ -7,8 +7,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AishIngAnalyzer - Cosmetic Ingredient Safety',
-  description: 'AI-powered cosmetic ingredient safety analysis',
+  title: 'Cosmet - Cosmetic Ingredient Safety Analyzer',
+  description: 'AI-powered cosmetic ingredient safety analysis. Get personalized safety assessments based on your skin type and allergen profile in seconds.',
 };
 
 export default function RootLayout({

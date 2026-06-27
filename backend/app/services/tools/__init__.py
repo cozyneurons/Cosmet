@@ -1,5 +1,5 @@
 """
-Tools package for AishIngAnalyzer
+Tools package for Cosmate
 """
 
 from .mcp_tools import IngredientTools, get_tools

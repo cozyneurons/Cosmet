@@ -4,7 +4,7 @@ services:
   # The active Render config is at /render.yaml (repo root).
   # This file is kept for reference only.
   - type: web
-    name: aishinganalyzer-api
+    name: cosmate-api
     env: python
     rootDir: ./backend
     buildCommand: pip install -r requirements.txt
