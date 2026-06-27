@@ -3,7 +3,7 @@ LAYER 4: LangGraph Multi-Agent Workflow
 Orchestrates Supervisor → Research → Analysis → Critic flow
 """
 
-from langgraph.pregel import GraphRecursionError
+from langgraph.errors import GraphRecursionError
 from langgraph.graph import StateGraph, END
 from .state import AnalysisState, create_initial_state
 from ..agents.supervisor import SupervisorAgent
