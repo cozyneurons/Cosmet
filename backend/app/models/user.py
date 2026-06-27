@@ -5,7 +5,7 @@ from datetime import datetime
 class UserBase(BaseModel):
     email: EmailStr
     name: str
-    age_group: str
+    age_group: str = "Not specified"
     sex: str = "Prefer not to say"
     country: Optional[str] = None
 
@@ -33,3 +33,7 @@ class Token(BaseModel):
 class TokenPayload(BaseModel):
     sub: Optional[str] = None
     exp: Optional[int] = None
+
+class GoogleLoginRequest(BaseModel):
+    credential: str
+

@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     
     # External APIs
     GOOGLE_API_KEY: Optional[str] = None
+    GOOGLE_CLIENT_ID: Optional[str] = None
     TAVILY_API_KEY: Optional[str] = None
     QDRANT_URL: Optional[str] = None
     QDRANT_API_KEY: Optional[str] = None

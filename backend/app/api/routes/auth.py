@@ -1,55 +1,58 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
-from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
-from app.models.user import UserCreate, UserLogin, UserResponse, Token
+from app.models.user import UserResponse, Token, GoogleLoginRequest
 from app.core.security import create_access_token, create_refresh_token
 from app.core.config import settings
 from app.api.deps import get_auth_service, get_current_active_user
 from app.services.auth_service import AuthService
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(
-    user_data: UserCreate,
+@router.post("/google", response_model=Token)
+async def google_login(
+    payload: GoogleLoginRequest = Body(...),
     auth_service: AuthService = Depends(get_auth_service)
 ):
-    """Register a new user"""
+    """Login with Google credential token (auto-registering user if new)"""
     try:
-        user = await auth_service.register_user(user_data)
-        return user
+        # Verify Google OAuth token
+        idinfo = id_token.verify_oauth2_token(
+            payload.credential,
+            requests.Request(),
+            settings.GOOGLE_CLIENT_ID
+        )
+        
+        email = idinfo.get("email")
+        name = idinfo.get("name", email.split("@")[0] if email else "User")
+        
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email not provided by Google token"
+            )
+            
+        user = await auth_service.login_or_register_google_user(email, name)
+        
+        access_token = create_access_token(
+            data={"sub": user.id},
+            expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        refresh_token = create_refresh_token(data={"sub": user.id})
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user": user
+        }
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Google credentials: {str(e)}"
         )
 
-@router.post("/login", response_model=Token)
-async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    auth_service: AuthService = Depends(get_auth_service)
-):
-    """Login user and return JWT tokens"""
-    user = await auth_service.authenticate_user(form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token = create_access_token(
-        data={"sub": user.id},
-        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    refresh_token = create_refresh_token(data={"sub": user.id})
-    
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "user": user
-    }
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
