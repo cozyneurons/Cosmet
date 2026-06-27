@@ -1,15 +1,10 @@
 services:
   - type: web
     name: cosmet-api
-    env: python
-    # Render discovers render.yaml only at the repo root.
-    # We use "cd backend &&" so all commands run relative to the backend dir,
-    # where requirements.txt and the app/ package actually live.
-    buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    env: docker
+    dockerContext: backend
+    dockerfilePath: Dockerfile
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.12
       - key: PORT
         value: 8000
       - key: SECRET_KEY

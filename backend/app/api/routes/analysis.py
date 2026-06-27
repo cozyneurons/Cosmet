@@ -75,12 +75,9 @@ async def upload_ingredient_image(
     try:
         # Process image with OCR
         image = Image.open(io.BytesIO(contents))
-        try:
-            text = pytesseract.image_to_string(image)
-        except Exception as ocr_err:
-            # Soft fallback if tesseract command line is not installed on system
-            print(f"[OCR FALLBACK] Tesseract OCR not available or failed: {ocr_err}")
-            text = "Ingredients: Water, Niacinamide, Glycerin, Hyaluronic Acid, Phenoxyethanol"
+        
+        # Run Tesseract OCR directly (raising any errors)
+        text = pytesseract.image_to_string(image)
         
         # Clean up text
         text = text.strip()
@@ -98,6 +95,12 @@ async def upload_ingredient_image(
         else:
             ingredients = [re.sub(r'\s+', ' ', i).strip() for i in text.split("\n") if i.strip()]
             ingredients = [i for i in ingredients if i]
+            
+        if not ingredients:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No ingredients could be parsed from the image. Please upload a clearer photo."
+            )
         
         return {
             "text": text,
@@ -106,6 +109,7 @@ async def upload_ingredient_image(
         }
         
     except Exception as e:
+        # Raise the actual error instead of hiding it
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"OCR processing failed: {str(e)}"
