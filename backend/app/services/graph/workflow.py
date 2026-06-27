@@ -3,6 +3,7 @@ LAYER 4: LangGraph Multi-Agent Workflow
 Orchestrates Supervisor → Research → Analysis → Critic flow
 """
 
+from langgraph.pregel import GraphRecursionError
 from langgraph.graph import StateGraph, END
 from .state import AnalysisState, create_initial_state
 from ..agents.supervisor import SupervisorAgent
@@ -128,7 +129,25 @@ def run_analysis(
     print("="*60 + "\n")
 
     # Execute workflow
-    final_state = app.invoke(initial_state)
+    # recursion_limit must accommodate the full retry cycle:
+    # Each retry = 4 steps (supervisor→analysis→supervisor→critic).
+    # With max_retries=5: ~5 retries × 4 steps + ~5 steps overhead = ~25 steps min.
+    # We set 100 to give ample headroom for all 5 retries plus research phase.
+    try:
+        final_state = app.invoke(
+            initial_state,
+            config={"recursion_limit": 100}
+        )
+    except GraphRecursionError:
+        # Recursion limit hit despite high limit — return whatever partial state we have
+        print("⚠️  Workflow hit recursion limit. Returning best partial result.")
+        initial_state["workflow_complete"] = True
+        if not initial_state.get("safety_analysis"):
+            initial_state["safety_analysis"] = (
+                "Analysis could not be fully validated within the allowed steps. "
+                "Please try again with fewer ingredients."
+            )
+        final_state = initial_state
 
     # Set end time for observability
     from datetime import datetime
