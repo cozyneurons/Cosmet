@@ -60,6 +60,14 @@ class SupervisorAgent:
         analysis_attempts = state.get("analysis_attempts", 0)
         max_retries = state.get("max_retries", 5)  # Allow up to 5 retry attempts
 
+        # Decision 0: Non-cosmetic product detected — terminate immediately
+        if state.get("invalid_product", False):
+            print("🚫 Supervisor: Non-cosmetic product detected. Stopping workflow.")
+            return {
+                "next_agent": "END",
+                "workflow_complete": True
+            }
+
         # Decision 1: Check if workflow complete (critic approved)
         if critic_approved:
             print("✅ Supervisor: Critic approved. Workflow complete!")

@@ -91,7 +91,20 @@ class CriticAgent:
             response = self.model.generate_content(prompt)
             validation_result = response.text
 
-            # Parse the decision (look for APPROVE or REJECT)
+            # Parse the decision (check for NON_COSMETIC rejection first)
+            if "NON_COSMETIC" in validation_result.upper():
+                print("  🚫 Critic REJECTED: Non-cosmetic product detected!")
+                return {
+                    "critic_approved": False,
+                    "invalid_product": True,
+                    "critic_feedback": "The provided ingredient list appears to belong to a non-cosmetic item (e.g. food, beverage, or cleaning product). Skincare safety analysis is not applicable.",
+                    "analysis_complete": True,
+                    "messages": [{
+                        "role": "assistant",
+                        "content": "Alert: The product is not a cosmetic formulation and has been rejected by the safety validator."
+                    }]
+                }
+
             is_approved = "APPROVE" in validation_result.upper() and "REJECT" not in validation_result.upper()
 
             if is_approved:
@@ -188,14 +201,25 @@ VALIDATION GATES (all must pass):
    - Expert: Technical terminology and mechanisms?
    - Tone issues: [list any]
 
+6. ✓ PRODUCT RELEVANCE & SUITABILITY CHECK
+   - Based on the combined list of ingredients, determine whether this product is intended for cosmetic/topical skincare application.
+   - Ingredients that indicate a non-cosmetic product include: carbonated water, taurine, caffeine, citric acid (as a beverage acidulant), sucralose, erythritol, artificial sweeteners, food dyes, sodium benzoate (as a food preservative), natural flavors (food context), or other food/beverage/pharmaceutical/cleaning chemicals.
+   - If the ingredient combination clearly describes a food product, beverage, drug, or household cleaner rather than a topical cosmetic, this gate FAILS.
+   - Cosmetics are products applied topically to the skin, hair, or nails.
+   - Product relevance issues: [list any]
+
 DECISION:
 Based on the validation gates above, respond with ONE of:
 
 APPROVE
 [If all gates pass] The analysis is complete, accurate, and appropriate.
 
-REJECT
-[If any gate fails] Provide specific feedback:
+REJECT: NON_COSMETIC
+[If Gate 6 fails — the ingredient list is from a food/beverage/drug/cleaning product, not a cosmetic]
+Provide: What type of product these ingredients suggest, and why skincare analysis is not applicable.
+
+REJECT: IMPROVE
+[If Gates 1–5 fail but the product IS cosmetic] Provide specific feedback:
 - Which gates failed
 - What is missing or incorrect
 - How to fix it

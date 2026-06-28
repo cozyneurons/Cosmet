@@ -61,6 +61,7 @@ class AnalysisState(TypedDict):
     # ==========================================
     critic_approved: bool
     critic_feedback: Optional[str]
+    invalid_product: Optional[bool]  # True if ingredients are not from a cosmetic product
 
     # ==========================================
     # RETRY MANAGEMENT
@@ -144,6 +145,7 @@ def create_initial_state(
         # Critic phase
         "critic_approved": False,
         "critic_feedback": None,
+        "invalid_product": False,
 
         # Retry management
         "research_attempts": 0,
