@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Optional
 from qdrant_client import QdrantClient
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 from tavily import TavilyClient
 
 
@@ -25,7 +25,7 @@ class IngredientTools:
             api_key=os.getenv("QDRANT_API_KEY")
         )
         self.collection_name = "cosmetic_ingredients"
-        self.embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        self.embedding_model = TextEmbedding(model_name='sentence-transformers/all-MiniLM-L6-v2')
 
         # Initialize Tavily for web search fallback
         tavily_key = os.getenv("TAVILY_API_KEY")
@@ -51,7 +51,8 @@ class IngredientTools:
         """
         try:
             # Generate embedding for search
-            query_vector = self.embedding_model.encode(ingredient_name).tolist()
+            # model.embed returns a generator, retrieve the first element and convert to list
+            query_vector = next(self.embedding_model.embed([ingredient_name])).tolist()
 
             # Search Qdrant
             results = self.qdrant_client.query_points(
@@ -64,6 +65,14 @@ class IngredientTools:
                 result = results[0]
                 payload = result.payload
                 confidence = result.score
+
+                # Boost confidence for exact or partial name matches
+                query_lower = ingredient_name.lower().strip()
+                db_name_lower = payload.get("name", "").lower().strip()
+                if query_lower == db_name_lower:
+                    confidence = 1.0
+                elif query_lower in db_name_lower or db_name_lower in query_lower:
+                    confidence = max(confidence, 0.85)
 
                 return {
                     "name": payload.get("name", ingredient_name),

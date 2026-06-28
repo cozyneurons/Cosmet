@@ -6,7 +6,7 @@ import json
 from typing import List, Dict
 from pathlib import Path
 import logging
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO)
@@ -24,10 +24,12 @@ class EmbeddingGenerator:
             model_name: Name of sentence-transformers model
         """
         self.logger = logger
+        if "/" not in model_name:
+            model_name = f"sentence-transformers/{model_name}"
         self.logger.info(f"Loading embedding model: {model_name}")
         
         # STEP 6.2: Load pre-trained model
-        self.model = SentenceTransformer(model_name)
+        self.model = TextEmbedding(model_name=model_name)
         self.logger.info("Model loaded successfully")
         
     def create_embedding_text(self, ingredient: Dict) -> str:
@@ -74,7 +76,8 @@ class EmbeddingGenerator:
             text = self.create_embedding_text(ingredient)
             
             # STEP 6.9: Generate embedding
-            embedding = self.model.encode(text, convert_to_numpy=True)
+            # model.embed returns a generator, retrieve the first element
+            embedding = next(self.model.embed([text]))
             
             # STEP 6.10: Add embedding to ingredient data
             ingredient_with_embedding = ingredient.copy()

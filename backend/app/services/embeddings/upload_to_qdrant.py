@@ -119,13 +119,13 @@ class QdrantUploader:
             query: Search query
             top_k: Number of results to return
         """
-        from sentence_transformers import SentenceTransformer
+        from fastembed import TextEmbedding
         
         self.logger.info(f"Testing search for: {query}")
         
         # STEP 7.12: Generate query embedding
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-        query_vector = model.encode(query).tolist()
+        model = TextEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        query_vector = next(model.embed([query])).tolist()
         
         # STEP 7.13: Search Qdrant
         results = self.client.query_points(
