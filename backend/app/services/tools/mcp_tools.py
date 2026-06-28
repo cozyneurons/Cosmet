@@ -69,11 +69,16 @@ class IngredientTools:
                 # Boost confidence for exact or partial name matches
                 query_lower = ingredient_name.lower().strip()
                 db_name_lower = payload.get("name", "").lower().strip()
-                if query_lower == db_name_lower:
+                if query_lower and query_lower == db_name_lower:
                     confidence = 1.0
-                elif query_lower in db_name_lower or db_name_lower in query_lower:
+                elif (
+                    query_lower
+                    and db_name_lower
+                    and len(query_lower) >= 3
+                    and len(db_name_lower) >= 3
+                    and (query_lower in db_name_lower or db_name_lower in query_lower)
+                ):
                     confidence = max(confidence, 0.85)
-
                 return {
                     "name": payload.get("name", ingredient_name),
                     "purpose": payload.get("purpose", ""),
@@ -149,10 +154,11 @@ class IngredientTools:
         adjustments = []
         reasoning_parts = []
 
-        # Adjustment 1: Allergen check
-        if self.is_allergen_match(ingredient_name, user_allergies):
+        is_allergen, _ = self.is_allergen_match(ingredient_name, user_allergies)
+        if is_allergen:
+            previous_score = personalized_score
             personalized_score = 10  # Maximum concern
-            adjustments.append("Allergen match: +5 points")
+            adjustments.append(f"Allergen match: +{round(personalized_score - previous_score, 1)} points")
             reasoning_parts.append(f"ALLERGEN MATCH: {ingredient_name} matches your allergy list")
 
         # Adjustment 2: Skin type compatibility
