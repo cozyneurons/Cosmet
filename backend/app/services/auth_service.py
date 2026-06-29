@@ -35,7 +35,6 @@ class AuthService:
             "age_group": "Not specified",
             "sex": "Prefer not to say",
             "country": "",
-            "hashed_password": "",  # Google users have no local password hash
             "created_at": datetime.utcnow().isoformat(),
             "is_active": "True"
         }
