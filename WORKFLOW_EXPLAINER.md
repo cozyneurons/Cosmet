@@ -1,114 +1,155 @@
-# Cosmet Multi-Agent Safety Analysis Workflow Explainer
+# Cosmet — Multi-Agent Safety Analysis Workflow Explainer
 
-This document provides a detailed technical breakdown of how the **Cosmet** cosmetic safety analysis application works under the hood.
+This document provides a detailed technical breakdown of how the **Cosmet** cosmetic safety analysis application works under the hood, reflecting the current production codebase.
 
 ---
 
 ## 1. High-Level Architecture Overview
 
-Cosmet is designed as a modular web application split into three main layers:
+Cosmet is a modular web application split into four main layers:
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│                   Frontend (Next.js)                   │
-│  - User Interface (Dashboard, Register, Login)          │
-│  - Real-time WebSocket connection for progress updates │
+│                   Frontend (Next.js 14)                │
+│  - Google OAuth Sign-In (no email/password)            │
+│  - JWT tokens stored in localStorage                   │
+│  - Real-time WebSocket connection for agent progress   │
 └──────────────────────────┬─────────────────────────────┘
                            │ HTTP / WebSocket
                            ▼
 ┌────────────────────────────────────────────────────────┐
 │                   Backend (FastAPI)                    │
-│  - REST API router endpoints (Auth, Profile, History)  │
-│  - LangGraph state orchestrator                        │
-└──────────────────────────┬─────────────────────────────┘
-                           │
-         ┌─────────────────┴─────────────────┐
-         ▼                                   ▼
-┌──────────────────┐               ┌──────────────────┐
-│   Memory Layer   │               │   AI Agentry     │
-│  - Redis Server  │               │ - LangGraph      │
-│  - In-Memory DB  │               │ - Gemini 3.1     │
-│    (Fallback)    │               │   Flash API      │
-└──────────────────┘               └──────────────────┘
+│  - REST API routes (Auth, Analysis, Profile, History)  │
+│  - LangGraph multi-agent state orchestrator            │
+└──────────┬────────────────────────────────┬────────────┘
+           │                                │
+           ▼                                ▼
+┌──────────────────┐              ┌──────────────────────┐
+│   Memory Layer   │              │    AI Agent Layer    │
+│  - Redis Cloud   │              │  - LangGraph         │
+│    (profiles,    │              │  - Gemini 3.1        │
+│    history)      │              │    Flash Lite        │
+│  - In-memory     │              │  - FastEmbed (ONNX)  │
+│    fallback      │              │  - Qdrant Cloud      │
+└──────────────────┘              │  - Tavily Search     │
+                                  └──────────────────────┘
 ```
 
-1. **Frontend (Next.js 16 / React 19):** Built as a client-side dashboard utilizing Webpack for compilation. It manages user state, auth tokens, scans ingredient label images via OCR, and displays safety analysis reports.
-2. **Backend (FastAPI & Uvicorn):** Hosts HTTP routes and a WebSocket manager. When a safety request is made, it delegates the analysis to the LangGraph Multi-Agent system.
-3. **Memory Layer (Redis / RAM Fallback):** Connects to a local/cloud Redis database to persist user profiles, session caches, and historical reports. If no Redis server is available, it gracefully triggers a RAM-based Python dictionary fallback to keep the app functional without data persistence.
-4. **AI Layer (LangGraph & Gemini):** Orchestrates four separate AI agents running on the stable **Gemini 3.1 Flash-Lite** model (`gemini-3.1-flash-lite`).
+1. **Frontend (Next.js 14 / React):** Client-side app that manages Google OAuth login, stores JWT tokens in `localStorage`, submits ingredients for analysis, and renders the safety report. Auth state is managed by **Zustand** (`authStore`).
+2. **Backend (FastAPI & Uvicorn):** Hosts REST endpoints and a WebSocket manager. Delegates analysis requests to the LangGraph multi-agent system.
+3. **Memory Layer (Redis Cloud / RAM Fallback):** Persists user profiles (`user:{id}` hash) and analysis history (`user:{name}:history` list) permanently in Redis Cloud. Degrades gracefully to an in-memory Python dict if Redis is unreachable.
+4. **AI Layer (LangGraph, Gemini, FastEmbed, Qdrant, Tavily):** Orchestrates four AI agents running on **Gemini 3.1 Flash Lite**. Vector embeddings are generated with **FastEmbed** (ONNX Runtime — no PyTorch).
 
 ---
 
-## 2. How LangGraph Works & Code Locations
+## 2. Authentication Flow (Google OAuth → JWT)
 
-**LangGraph** is a library designed to build stateful, multi-actor applications with LLMs. Unlike simple chains, LangGraph allows modeling agent loops, re-evaluations, and conditional state routing. 
+```
+Browser                   Next.js               FastAPI Backend        Google
+  │                          │                        │                   │
+  │── 1. Click Sign In ─────>│                        │                   │
+  │                          │── 2. Google GSI SDK ──────────────────────>│
+  │                          │<── 3. credential (ID token) ───────────────│
+  │                          │── 4. POST /api/v1/auth/google ────────────>│
+  │                          │           { credential: "eyJhbGc..." }     │
+  │                          │                        │── 5. verify_oauth2_token()
+  │                          │                        │   (google-auth lib)
+  │                          │                        │── 6. find or create user in Redis
+  │                          │                        │── 7. issue JWT access + refresh token
+  │                          │<── 8. { access_token, refresh_token, user }│
+  │                          │── 9. store tokens in localStorage          │
+  │<── 10. redirect /analyze ─│                        │                   │
+```
 
-### Core Concepts in Cosmet
-* **State Management (Short-Term Memory):** The system passes a centralized `AnalysisState` object (a python `TypedDict`) through the nodes. Every agent receives this dictionary, performs operations, and returns a modified subset of the keys.
-* **Nodes:** Each agent or utility represents a node in the graph. In Cosmet, the nodes are:
-  - `supervisor` (routes execution)
-  - `research` (collects database and internet facts)
-  - `analysis` (interprets facts and formats them)
-  - `critic` (validates report quality)
-* **Edges:** Connections between nodes. Cosmet uses **conditional edges** originating from the `supervisor` to determine which node to activate next, depending on the current graph state.
-
-### Code Directories and Key Files
-
-All LangGraph and Agentic logic is located under the backend services:
-
-* **Graph State definition:** [state.py](file:///Users/shubhamkumar/Desktop/Cosmet/backend/app/services/graph/state.py)
-  Defines `AnalysisState` representing the short-term memory schema (e.g., user skin profile, ingredient list, critic feedback, retry counters, and generated markdown).
-* **Graph Workflow & Compilation:** [workflow.py](file:///Users/shubhamkumar/Desktop/Cosmet/backend/app/services/graph/workflow.py)
-  Uses `StateGraph` to add nodes (`supervisor`, `research`, `analysis`, `critic`), configure edges, set conditional transitions, and call `workflow.compile()` to package the pipeline.
-* **Supervisor Agent Node:** [supervisor.py](file:///Users/shubhamkumar/Desktop/Cosmet/backend/app/services/agents/supervisor.py)
-  Decides transitions based on the current state.
-* **Research Agent Node:** [research_agent.py](file:///Users/shubhamkumar/Desktop/Cosmet/backend/app/services/agents/research_agent.py)
-  Runs database queries and fallback Tavily web searches.
-* **Analysis Agent Node:** [analysis_agent.py](file:///Users/shubhamkumar/Desktop/Cosmet/backend/app/services/agents/analysis_agent.py)
-  Generates reports dynamically via Gemini 3.1 Flash Lite.
-* **Critic Agent Node:** [critic_agent.py](file:///Users/shubhamkumar/Desktop/Cosmet/backend/app/services/agents/critic_agent.py)
-  Implements strict QA validation filters.
+- No bcrypt. No `hashed_password` stored in Redis for Google users.
+- JWT tokens are validated on every protected route via `OAuth2PasswordBearer` + `decode_token()` in `deps.py`.
+- The Axios client in `api.ts` automatically intercepts 401 responses, attempts a token refresh via `/auth/refresh`, and retries the original request.
 
 ---
 
-## 3. Multi-Agent Agentic Workflow Flowchart
+## 3. Embedding Pipeline (FastEmbed, Not PyTorch)
 
-Below is the complete state-routing diagram mapping out the decision logic. Since LangGraph coordinates every transition through the Supervisor, every agent node loops back to the `Supervisor` node after execution:
+When ingredients are seeded into Qdrant or looked up at runtime, embeddings are generated with **FastEmbed**:
+
+```python
+# generate_embeddings.py & mcp_tools.py
+from fastembed import TextEmbedding
+
+model = TextEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
+vector = list(model.embed(["Niacinamide"]))[0]  # 384-dimensional float array
+```
+
+- **Model**: `sentence-transformers/all-MiniLM-L6-v2` via ONNX Runtime.
+- **Vector size**: 384 dimensions.
+- **Why FastEmbed instead of `sentence-transformers`?** FastEmbed uses ONNX Runtime for inference — no PyTorch, no GPU libraries. Reduces disk usage by ~1.5 GB and runtime RAM by ~150–200 MB.
+
+---
+
+## 4. LangGraph Multi-Agent Workflow
+
+### State Schema (`AnalysisState`)
+
+The shared `TypedDict` that flows through every agent node:
+
+```python
+class AnalysisState(TypedDict):
+    # User input
+    user_name, skin_type, allergies, expertise_level, ingredient_names
+
+    # Research phase
+    research_complete: bool
+    ingredient_data: List[Dict]       # raw data per ingredient
+    research_confidence: float        # average Qdrant/Tavily confidence
+
+    # Analysis phase
+    analysis_complete: bool
+    safety_analysis: Optional[str]    # final markdown report
+
+    # Critic phase
+    critic_approved: bool
+    critic_feedback: Optional[str]
+    invalid_product: Optional[bool]   # True → non-cosmetic item detected
+
+    # Retry management
+    research_attempts, analysis_attempts, max_retries (default: 5)
+
+    # Observability
+    qdrant_hits, tavily_hits, total_critic_rejections
+```
+
+### Workflow Graph
 
 ```mermaid
 graph TD
-    %% Nodes
     Start([START])
-    Supervisor[Supervisor Agent<br/>app/services/agents/supervisor.py]
-    Research[Research Agent<br/>app/services/agents/research_agent.py]
-    Analysis[Analysis Agent<br/>app/services/agents/analysis_agent.py]
-    Critic[Critic Agent<br/>app/services/agents/critic_agent.py]
+    Supervisor["Supervisor Agent\napp/services/agents/supervisor.py"]
+    Research["Research Agent\napp/services/agents/research_agent.py"]
+    Analysis["Analysis Agent\napp/services/agents/analysis_agent.py"]
+    Critic["Critic Agent\napp/services/agents/critic_agent.py"]
     End([END / Client Response])
 
-    %% State edges
     Start -->|Initialize State| Supervisor
-    
-    %% Routing decisions
-    Supervisor -->|Route 1: Missing Data| Research
-    Research -->|Return updated state<br/>with ingredient facts| Supervisor
-    
-    Supervisor -->|Route 2: Data Gathered| Analysis
+
+    Supervisor -->|"Decision 0: invalid_product=True"| End
+    Supervisor -->|"Decision 1: critic_approved=True"| End
+    Supervisor -->|"Decision 2: research incomplete"| Research
+    Research -->|Return updated state with ingredient facts| Supervisor
+
+    Supervisor -->|"Decision 3: analysis incomplete"| Analysis
     Analysis -->|Return safety report draft| Supervisor
-    
-    Supervisor -->|Route 3: Validate Report| Critic
-    Critic -->|Return Validation Result| Supervisor
-    
-    %% Loopback vs End
-    Supervisor -->|Route 4: QA Rejected| Analysis
-    Supervisor -->|Route 5: QA Approved / Max Retries| End
-    
-    %% Styling
+
+    Supervisor -->|"Decision 4: validate report"| Critic
+    Critic -->|Return validation result| Supervisor
+
+    Supervisor -->|"Decision 5: critic rejected → retry"| Analysis
+    Supervisor -->|"Decision 6: max retries exceeded"| End
+
     classDef supervisor fill:#f9f0ff,stroke:#d8b4fe,stroke-width:2px;
     classDef research fill:#eff6ff,stroke:#bfdbfe,stroke-width:2px;
     classDef analysis fill:#ecfdf5,stroke:#a7f3d0,stroke-width:2px;
     classDef critic fill:#fffbeb,stroke:#fde68a,stroke-width:2px;
     classDef endpoint fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px;
-    
+
     class Supervisor supervisor;
     class Research research;
     class Analysis analysis;
@@ -118,83 +159,171 @@ graph TD
 
 ---
 
-## 4. Agent Capabilities & Core Logic
+## 5. Agent Capabilities & Core Logic
 
-### The Supervisor Agent (The Orchestrator)
-* **Logic:** `route(state: AnalysisState)`
-* **Responsibilities:**
-  - Evaluates if the research data is gathered (`research_complete`). If not, dispatches to **Research Agent**.
-  - Evaluates if the analysis is generated (`analysis_complete`). If not, dispatches to **Analysis Agent**.
-  - If analysis is drafted but not yet quality checked, dispatches to **Critic Agent**.
-  - Checks if the Critic Agent flagged approvals (`critic_approved`). If so, ends the graph.
-  - Monitors retry state (`analysis_attempts >= max_retries`). If the Critic rejects too many times, it terminates the loop and returns a best-effort report to the user instead of hanging.
+### Supervisor Agent — The Orchestrator
+**File:** [`supervisor.py`](backend/app/services/agents/supervisor.py)
 
-### The Research Agent (The Fact-Finder)
-* **Logic:** `run(state: AnalysisState)`
-* **Responsibilities:**
-  - **Type Classification:** Checks if ingredients are common chemical names, brand names, or plant botanicals.
-  - **Vector Retrieval:** Spawns a semantic Qdrant query using a local `SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')` model.
-  - **Tavily Web Search:** If Qdrant does not yield confident records (score `< 0.7`), it triggers web-searching fallbacks.
-  - **Personalized Safety Adjustment:** Calculates customized concerns (e.g. sensitive skin gets score penalties for fragrances; oily skin gets penalties for comedogenic ingredients).
+Routing priority (checked in order):
 
-### The Analysis Agent (The Writer)
-* **Logic:** `run(state: AnalysisState)`
-* **Responsibilities:**
-  - Takes raw research properties and user skin parameters from `AnalysisState`.
-  - Determines user experience levels (`beginner`, `intermediate`, `expert`).
-  - Calls Gemini 3.1 Flash Lite to generate a comprehensive markdown table mapping ingredients, purposes, safety scores, specific concerns, and personalized recommendations.
-  - Adds `⚠️ ALLERGEN/INGREDIENT TO AVOID` alerts to matched user allergens.
-
-### The Critic Agent (Quality Assurance)
-* **Logic:** `run(state: AnalysisState)`
-* **Responsibilities:**
-  - Performs structured validations.
-  - Runs Gemini 3.1 Flash Lite to review the report against 5 strict rules:
-    1. **Completeness:** Are all input ingredients addressed?
-    2. **Format:** Is the analysis rendered as a valid markdown table?
-    3. **Allergens:** Are all matched allergens flagged as `AVOID`?
-    4. **Consistency:** Do safety ratings match the concern descriptions?
-    5. **Tone:** Is the language appropriate for the user's expertise level?
-  - Returns `APPROVE` or `REJECT`. If rejected, outputs detailed feedback for the Analysis Agent to correct.
+| Priority | Condition | Action |
+|---|---|---|
+| **0** | `invalid_product == True` | → `END` immediately (non-cosmetic rejected) |
+| **1** | `critic_approved == True` | → `END` (workflow complete) |
+| **2** | `research_complete == False` | → `research` agent |
+| **3** | `analysis_complete == False` (first time) | → `analysis` agent |
+| **4** | `analysis_complete == False` (after critic rejection) | → `analysis` agent (retry with feedback) |
+| **5** | `analysis_complete == True`, not yet validated | → `critic` agent |
+| **6** | Any agent exceeds `max_retries` (5) | → `END` (best effort) |
 
 ---
 
-## 5. Real-Time WebSocket and HTTP Flow
+### Research Agent — The Fact-Finder
+**File:** [`research_agent.py`](backend/app/services/agents/research_agent.py)
 
+For each ingredient, the Research Agent runs a two-step lookup:
+
+**Step 1 — Qdrant Vector Search** (`mcp_tools.py → ingredient_lookup`):
 ```
-User (Browser)               Next.js Frontend               FastAPI Backend
-      │                              │                             │
-      │── 1. Enter ingredients ─────>│                             │
-      │                              │── 2. Create Session ID ────>│
-      │                              │<── Establish WebSocket ─────│
-      │                              │                             │
-      │                              │── 3. POST /analyze ────────>│
-      │                              │                             │── [Starts LangGraph]
-      │                              │<── 4. WS (Stage: Research) ─│
-      │                              │<── 5. WS (Stage: Analysis) ─│
-      │                              │<── 6. WS (Stage: Critic) ──│
-      │                              │<── 7. WS (Stage: Complete) ─│
-      │<── 8. Display Report ────────│                             │
+query_lower = ingredient_name.lower().strip()
+db_name_lower = payload["name"].lower().strip()
+
+if query_lower == db_name_lower:
+    confidence = 1.0              # Exact match
+elif len(query_lower) >= 3 and len(db_name_lower) >= 3
+     and (query_lower in db_name_lower or db_name_lower in query_lower):
+    confidence = max(score, 0.85) # Substring match (min 3 chars both sides)
 ```
 
-1. **Session Establishment:** Before submitting ingredients, the frontend generates a unique session ID and establishes a WebSocket connection to `ws://localhost:8000/api/v1/ws/{session_id}`.
-2. **Analysis Trigger:** The frontend sends a POST request containing the ingredients and the session ID.
-3. **Async Streaming:** While the backend runs the LangGraph thread, it sends real-time stage updates (`research`, `analysis`, `critic`) to the open WebSocket channel.
-4. **UI Update:** The frontend intercepts these packages, updating the progress bar message and percentage.
-5. **Finalization:** Once the Critic Agent approves, the backend stores the report in the user's history and returns the payload to the frontend.
+**Step 2 — Tavily Fallback** (when `confidence < 0.7`):
+```python
+web_data = tools.tavily_search(ingredient_name)
+# Only replace Qdrant result if Tavily has higher confidence
+if web_data["confidence"] > confidence:
+    data = web_data
+```
+
+Confidence counters (`qdrant_hits`, `tavily_hits`) are tracked for the final stats display.
 
 ---
 
-## 6. Key Fixes Applied to the Application
+### Analysis Agent — The Writer
+**File:** [`analysis_agent.py`](backend/app/services/agents/analysis_agent.py)
 
-We applied several critical improvements to ensure stability:
+Takes all ingredient research data + user profile from state and calls **Gemini 3.1 Flash Lite** to generate a structured markdown safety report. The prompt adapts language complexity based on `expertise_level`:
+- **Beginner**: simple, jargon-free explanations.
+- **Intermediate**: moderate technical detail.
+- **Expert**: full mechanism and chemistry references.
 
-### Frontend
-1. **Webpack Compilation (`--webpack`):** Switched Next.js from Turbopack to Webpack. Turbopack crashed in a loop when generating child threads on this macOS terminal, while Webpack builds the bundle perfectly.
-2. **Server-Side Rendering (SSR) Hydration Fix:**
-   * **Layout Auth Syncing:** Added a `mounted` state inside `DashboardLayout` in [layout.tsx](file:///Users/shubhamkumar/Desktop/Cosmet/frontend/src/app/(dashboard)/layout.tsx) so client-only cookie checks wait until after the initial render. This prevents the server (rendering `null`) and client (rendering the dashboard) from failing React hydration.
-   * **Root Tag Warning Suppression:** Added `suppressHydrationWarning` to the `<html>` element in the root [layout.tsx](file:///Users/shubhamkumar/Desktop/Cosmet/frontend/src/app/layout.tsx) to prevent browser extensions and testing tools from triggering console errors.
+Allergen matches are highlighted with `⚠️ ALLERGEN/INGREDIENT TO AVOID` in the report table.
 
-### Backend
-1. **Environment Variables Loading:** Added `load_dotenv()` to [config.py](file:///Users/shubhamkumar/Desktop/Cosmet/backend/app/core/config.py) so variables inside `backend/.env` are correctly loaded into `os.environ` upon startup. This resolved a crash where agents threw `GOOGLE_API_KEY not found in environment`.
-2. **Model Deprecation Upgrade:** Upgraded all agent code from the deprecated experimental model `'gemini-2.0-flash-exp'` to the stable, production-ready **Gemini 3.1 Flash Lite** (`'gemini-3.1-flash-lite'`) model.
+---
+
+### Critic Agent — Quality Assurance
+**File:** [`critic_agent.py`](backend/app/services/agents/critic_agent.py)
+
+Runs 6 validation gates via a Gemini 3.1 Flash Lite prompt:
+
+| Gate | Check |
+|---|---|
+| **1. Completeness** | All submitted ingredients addressed in the report? |
+| **2. Format** | Analysis rendered as a valid markdown table with all columns? |
+| **3. Allergen Match** | Ingredients matching user allergens flagged as AVOID? |
+| **4. Consistency** | Safety scores (1–10) match the concern descriptions? |
+| **5. Tone** | Language appropriate for the user's expertise level? |
+| **6. Product Relevance** | Do ingredients indicate a cosmetic product? |
+
+**Three possible decisions:**
+
+```
+APPROVE           → sets critic_approved=True, workflow ends
+REJECT: IMPROVE   → sends detailed feedback to Analysis Agent for retry
+REJECT: NON_COSMETIC → sets invalid_product=True, Supervisor routes to END immediately
+```
+
+The `NON_COSMETIC` check is evaluated **first** in the parsing logic, before checking for `APPROVE`.
+
+---
+
+### Safety Scorer — Personalized Risk Calculator
+**File:** [`mcp_tools.py → safety_scorer`](backend/app/services/tools/mcp_tools.py)
+
+Calculates a personalized 1–10 safety score from base ingredient data + user profile:
+
+```python
+is_allergen, _ = self.is_allergen_match(ingredient_name, user_allergies)
+# ↑ Always unpack the tuple — the bare tuple would evaluate True even when (False, None)
+
+if is_allergen:
+    previous_score = personalized_score
+    personalized_score = 10  # Maximum concern
+    adjustments.append(f"Allergen match: +{round(personalized_score - previous_score, 1)} points")
+
+if skin_type == "sensitive" and irritation keywords in concerns:
+    personalized_score = min(10, personalized_score + 2)
+
+if skin_type == "oily" and "comedogenic" in concerns:
+    personalized_score = min(10, personalized_score + 1)
+```
+
+Recommendation thresholds:
+- Score ≥ 8 → `AVOID`
+- Score ≥ 5 → `USE WITH CAUTION`
+- Score < 5 → `SAFE`
+
+---
+
+## 6. Real-Time WebSocket & HTTP Flow
+
+```
+User (Browser)          Next.js Frontend           FastAPI Backend
+      │                        │                          │
+      │── 1. Enter ingredients ─>│                          │
+      │                        │── 2. POST /api/v1/analyze ─>│
+      │                        │       { ingredients, skin_type, ... }
+      │                        │                          │── [Starts LangGraph]
+      │                        │<── 3. WS: Stage: Research ──│
+      │                        │<── 4. WS: Stage: Analysis ──│
+      │                        │<── 5. WS: Stage: Critic ────│
+      │                        │<── 6. WS: Stage: Complete ──│
+      │<── 7. Display Report ───│                          │
+      │                        │                          │── 8. Save to Redis history
+```
+
+1. Frontend `POST /analyze` triggers `run_analysis()` in `workflow.py`.
+2. The LangGraph graph is invoked with an `AnalysisState`.
+3. Each agent transition emits a WebSocket message to the session channel.
+4. On completion (Critic APPROVE), the result is saved to `user:{name}:history` in Redis.
+5. The final `safety_analysis` markdown string is returned to the frontend.
+
+---
+
+## 7. Memory Architecture
+
+### Short-Term Memory (Session Duration)
+Managed by `SessionManager` in `session.py`. Lives in Redis with a TTL, tracking the active agent conversation for a single analysis run.
+
+### Long-Term Memory (Persistent)
+Managed by `RedisClient` in `redis_client.py`:
+
+| Redis Key Pattern | Data | Type |
+|---|---|---|
+| `user:{user_id}` | Full user profile hash | Redis Hash |
+| `user_email:{email}` | Maps email → user_id | Redis String |
+| `user:{user_name}:history` | List of past analysis JSONs | Redis List (`lpush`) |
+
+The history list stores up to 100 entries per user (newest first). If Redis is unreachable, an in-memory Python dict fallback prevents crashes — but data is lost on server restart.
+
+---
+
+## 8. Key Design Decisions
+
+| Decision | Rationale |
+|---|---|
+| **FastEmbed over `sentence-transformers`** | Eliminates PyTorch (~1.5 GB). Same model, same 384-dim vectors, via ONNX Runtime. |
+| **Google OAuth only, no email/password** | Removes entire bcrypt/registration surface. Simpler, more secure. |
+| **Confidence threshold 0.7 for Tavily fallback** | Balances local DB hits vs. web search cost. Exact/substring matches boosted to 1.0/0.85 prevent unnecessary Tavily calls. |
+| **`invalid_product` as Decision 0 in Supervisor** | Prevents infinite retry loops if the Critic detects non-cosmetic content. Terminates immediately, no Analysis retries. |
+| **`is_allergen_match` always unpacked as tuple** | The function returns `(bool, str|None)`. Using it raw as a boolean condition would evaluate to `True` for any non-empty tuple — even `(False, None)`. |
+| **`len(query) >= 3` and `len(db_name) >= 3` for substring match** | Prevents false positive confidence boosts for single-letter or two-letter inputs matching nearly every ingredient name. |
+| **Next.js `output: "standalone"`** | Reduces production build size from ~1 GB to ~39 MB for faster Vercel deploys. |

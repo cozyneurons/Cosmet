@@ -2,13 +2,14 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
-[![Next.js 15](https://img.shields.io/badge/Next.js-15.0-black.svg)](https://nextjs.org/)
+[![Next.js 14](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
 [![Gemini 3.1 Flash Lite](https://img.shields.io/badge/Gemini-3.1%20Flash%20Lite-orange.svg)](https://ai.google.dev/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-green.svg)](https://github.com/langchain-ai/langgraph)
+[![FastEmbed](https://img.shields.io/badge/FastEmbed-ONNX%20Runtime-blue.svg)](https://github.com/qdrant/fastembed)
 
-> **A multi-agent AI system that analyzes cosmetic ingredients in under 10 seconds, delivering personalized safety assessments based on user allergies and skin type. Migrated from Streamlit to a production-ready React (Next.js) + FastAPI stack.**
+> **A multi-agent AI system that analyzes cosmetic ingredients in seconds, delivering personalized safety assessments based on user allergies and skin type. Built on a production-ready Next.js + FastAPI stack with Google OAuth authentication.**
 
-From 20 minutes of manual research to 10 seconds of validated, personalized analysis.
+From 20 minutes of manual research to seconds of validated, personalized AI analysis.
 
 ---
 
@@ -32,7 +33,7 @@ From 20 minutes of manual research to 10 seconds of validated, personalized anal
 
 **Cosmet** is a multi-agent AI system that analyzes cosmetic ingredients in seconds, delivering personalized safety assessments based on your skin type and allergen profile. It demonstrates true agentic behavior through autonomous decision-making, self-correction, and dynamic workflow orchestration.
 
-It was originally built as a Streamlit MVP and has been migrated to a modern, decoupled production architecture featuring a high-performance **FastAPI backend** and a premium, responsive **Next.js (React + TypeScript)** frontend.
+A key safety feature is the **Product Relevance Gate** — the Critic Agent automatically detects if a submitted ingredient list belongs to a non-cosmetic product (e.g., a food item, beverage, or cleaning chemical) and terminates the analysis with a clear rejection message instead of generating a misleading safety report.
 
 ---
 
@@ -41,7 +42,8 @@ It was originally built as a Streamlit MVP and has been migrated to a modern, de
 ```
                                   ┌───────────────────────────┐
                                   │      Next.js Frontend     │
-                                  │   (React + TypeScript)    │
+                                  │  (React + TypeScript)     │
+                                  │  Google OAuth Sign-In     │
                                   └─────────────┬─────────────┘
                                                 │
                                     HTTP API &  │  WebSockets (Real-time Logs)
@@ -52,8 +54,8 @@ It was originally built as a Streamlit MVP and has been migrated to a modern, de
                                   │       (Python 3.12)       │
                                   └───────┬───────────────┬───┘
                                           │               │
-                            Vector DB     │               │  Cache, Sessions
-                            Queries       │               │  & Rate Limits
+                            Vector DB     │               │  Sessions,
+                            Queries       │               │  Analysis History
                                           ▼               ▼
                                    ┌────────────┐   ┌────────────┐
                                    │Qdrant Cloud│   │Redis Cloud │
@@ -61,22 +63,25 @@ It was originally built as a Streamlit MVP and has been migrated to a modern, de
                                    └────────────┘   └────────────┘
 ```
 
-### Agent specifications (LangGraph Orchestration)
-1. **Supervisor Agent:** Orchestrates the workflow and handles retry logic (max 2 retries).
-2. **Research Agent:** Performs semantic search using Qdrant and falls back to Tavily Web Search when confidence is low or ingredients are unrecognized.
-3. **Analysis Agent:** Adapts responses based on user expertise levels (Beginner vs Expert) and flags ingredients matching user allergy profiles.
-4. **Critic Agent:** Conducts quality assurance. Rejects incomplete reports and sends them back to the Analysis agent with feedback.
+### Agent Specifications (LangGraph Orchestration)
+
+1. **Supervisor Agent:** Orchestrates the entire workflow. Routes to the correct agent based on state, enforces a max of 5 retries per agent, and immediately terminates if a non-cosmetic product is detected (`invalid_product` flag).
+2. **Research Agent:** Performs semantic vector search in Qdrant with confidence boosting (exact name match → 1.0, substring match → 0.85). Falls back to **Tavily web search** when Qdrant confidence is below 0.7.
+3. **Analysis Agent:** Generates a personalized markdown safety report adapted to the user's skin type, allergy profile, and expertise level (beginner/intermediate/expert).
+4. **Critic Agent:** Runs 6 validation gates — completeness, format, allergen matching, score consistency, tone appropriateness, and **Product Relevance** (Gate 6 rejects non-cosmetic products). Rejects incomplete reports and sends them back to the Analysis Agent with specific feedback.
 
 ---
 
 ## ✨ Key Features
 
-- **Decoupled Modern Stack**: High-performance FastAPI backend with built-in token-bucket rate limiting and JWT auth.
-- **Premium Frontend UX**: Next.js App Router, TailwindCSS layout, custom dark mode aesthetics, loading skeletons, responsive cards, and real-time state visualization.
-- **Real-Time Analysis Updates**: WebSocket stream transmitting intermediate agent logs directly to a progress bar during execution.
-- **Form Validations**: Complete client-side validations via Zod schemas and React Hook Form.
-- **Security Protections**: HTTPS encryption, CORS security settings, secure HTTPOnly Cookies, and token-based credentials.
-- **Observability**: Complete LangSmith tracing configuration.
+- **Google OAuth Only**: Secure, passwordless login via Google Sign-In. No email/password registration.
+- **Smart Vector Search**: FastEmbed (ONNX Runtime) generates 384-dimensional embeddings without PyTorch — 10x lighter than `sentence-transformers`.
+- **Dual Knowledge Sources**: Qdrant vector DB (68 seeded ingredients) + Tavily web search fallback for any ingredient not in the database.
+- **Product Relevance Gate**: The Critic Agent automatically rejects non-cosmetic ingredient lists (energy drinks, food items, etc.) before generating a misleading safety report.
+- **Real-Time Agent Progress**: WebSocket stream transmitting live agent stage updates directly to a progress display in the frontend.
+- **Personalized Safety Scoring**: Adjusts safety scores for skin type (sensitive, oily, dry), allergen matches, and individual ingredient concern profiles.
+- **Analysis History**: Every completed analysis is saved to Redis Cloud and retrievable on the History page.
+- **Standalone Frontend Build**: Next.js `output: "standalone"` reduces the production bundle from ~1 GB to ~39 MB.
 
 ---
 
@@ -84,10 +89,16 @@ It was originally built as a Streamlit MVP and has been migrated to a modern, de
 
 | Layer | Technologies | Description |
 |---|---|---|
-| **Frontend** | React 19, Next.js 15, TypeScript, TailwindCSS v4, Axios, Lucide React, Sonner | Premium UI/UX, client-side routing, hooks and state management |
-| **Backend** | FastAPI, Uvicorn, Pydantic v2, PyJWT, Passlib, python-multipart | High-performance API server, rate limiting, and JWT authentication |
-| **Agent Orchestration**| LangGraph, LangChain, Google Generative AI (Gemini 3.1 Flash Lite) | Multi-agent state logic and Gemini API integrations |
-| **Vector DB** | Qdrant Cloud | Vector search for common cosmetics ingredients |
+| **Frontend** | Next.js 14, React, TypeScript, Vanilla CSS, Axios, Zustand | App Router, Google OAuth client, JWT token management via localStorage |
+| **Auth** | Google OAuth 2.0, `google-auth` (backend), JWT (access + refresh tokens) | Passwordless authentication — no bcrypt, no email/password |
+| **Backend** | FastAPI, Uvicorn, Pydantic v2, `python-jose`, python-multipart | High-performance API server with rate limiting and JWT validation |
+| **Agent Orchestration** | LangGraph, LangChain, Google Generative AI (Gemini 3.1 Flash Lite) | Multi-agent StateGraph with conditional routing and retry logic |
+| **Vector Embeddings** | FastEmbed (`sentence-transformers/all-MiniLM-L6-v2` via ONNX) | Lightweight CPU-only inference — no PyTorch dependency |
+| **Vector Database** | Qdrant Cloud | Semantic search across 68 seeded cosmetic ingredients |
+| **Cache & Sessions** | Redis Cloud | User sessions, analysis history (unlimited retention), rate limiting |
+| **Web Search Fallback** | Tavily Python SDK | Live web search for ingredients not in the Qdrant database |
+
+---
 
 ## 📁 Project Structure
 
@@ -95,47 +106,60 @@ It was originally built as a Streamlit MVP and has been migrated to a modern, de
 Cosmet/
 ├── backend/                      # FastAPI API server
 │   ├── app/
-│   │   ├── api/                  # Auth and analysis API routes
-│   │   ├── core/                 # Config, security, and dependencies
-│   │   ├── models/               # Pydantic schemas
-│   │   ├── services/             # Agent, database, OCR, and session logic
-│   │   │   ├── agents/           # LangGraph agents (Supervisor, Research, Analysis, Critic)
-│   │   │   ├── graph/            # LangGraph workflow graphs and states
-│   │   │   ├── embeddings/       # Embedding generation & database seed loaders
-│   │   │   └── tools/            # Custom FastMCP tools (Ingredient lookup, safety scorer)
-│   │   ├── utils/                # Rate limiter and helper classes
-│   │   └── main.py               # Server entry point
-│   ├── requirements.txt          # Python dependencies
-│   ├── Procfile                  # Render start command
-│   ├── runtime.txt               # Python runtime version
+│   │   ├── api/                  # API routes (auth, analysis, history, profile)
+│   │   │   ├── routes/auth.py    # /google, /refresh, /me, /logout endpoints
+│   │   │   └── deps.py           # JWT bearer token dependency injection
+│   │   ├── core/                 # Config and JWT token utilities
+│   │   │   ├── config.py         # Settings (Qdrant, Redis, Gemini, Google OAuth)
+│   │   │   └── security.py       # create_access_token, create_refresh_token, decode_token
+│   │   ├── models/               # Pydantic schemas (UserResponse, Token, GoogleLoginRequest)
+│   │   ├── services/
+│   │   │   ├── agents/           # LangGraph agent nodes
+│   │   │   │   ├── supervisor.py       # Workflow routing & invalid_product termination
+│   │   │   │   ├── research_agent.py   # Qdrant lookup + Tavily fallback
+│   │   │   │   ├── analysis_agent.py   # Gemini-powered report generation
+│   │   │   │   └── critic_agent.py     # 6-gate quality validation
+│   │   │   ├── graph/
+│   │   │   │   ├── state.py      # AnalysisState TypedDict (incl. invalid_product)
+│   │   │   │   └── workflow.py   # StateGraph compilation & run_analysis()
+│   │   │   ├── embeddings/
+│   │   │   │   ├── generate_embeddings.py  # FastEmbed TextEmbedding wrapper
+│   │   │   │   └── upload_to_qdrant.py     # Database seeding utility
+│   │   │   ├── tools/
+│   │   │   │   └── mcp_tools.py  # ingredient_lookup, safety_scorer, allergen_matcher, tavily_search
+│   │   │   └── memory/
+│   │   │       ├── redis_client.py  # user:profile, user:history Redis operations
+│   │   │       └── session.py       # Short-term session manager
+│   │   └── main.py               # FastAPI app entry point
+│   ├── requirements.txt          # Python dependencies (fastembed, no torch/sentence-transformers)
+│   └── runtime.txt               # python-3.12
 │
-├── frontend/                     # React Next.js SPA
+├── frontend/                     # Next.js App Router SPA
 │   ├── src/
-│   │   ├── app/                  # Next.js App Router (Dashboard, Analyze, Auth)
-│   │   ├── components/           # Custom components (AnalysisResults, forms, skeletons)
-│   │   ├── hooks/                # Custom hooks (auth, toast wrappers)
-│   │   ├── lib/                  # API client and form validation schemas
-│   │   └── types/                # TypeScript interface declarations
-│   ├── package.json              # NPM dependencies & scripts
-│   ├── jest.config.js            # Frontend testing settings
-│   └── vercel.json               # Vercel deployment configurations
+│   │   ├── app/
+│   │   │   ├── (auth)/login/     # Google Sign-In page
+│   │   │   ├── (dashboard)/      # Protected analyze, history, profile pages
+│   │   │   └── page.tsx          # Root redirect (auth check → /analyze or /login)
+│   │   ├── components/
+│   │   │   └── auth/LoginForm.tsx # Google OAuth button + callback handler
+│   │   ├── store/authStore.ts    # Zustand auth state (loginWithGoogle, logout, checkAuth)
+│   │   ├── hooks/useAuth.ts      # Auth hook wrapping authStore
+│   │   ├── lib/
+│   │   │   ├── api.ts            # Axios instance with JWT interceptors & auto-refresh
+│   │   │   ├── auth.ts           # localStorage token/user helpers
+│   │   │   └── validations.ts    # Zod profileSchema (login/register schemas removed)
+│   │   └── types/auth.ts         # User, AuthResponse interfaces (no LoginCredentials/RegisterData)
+│   ├── next.config.ts            # output: "standalone" for lean production builds
+│   └── vercel.json               # Vercel deployment config
 │
-├── bin/                          # Binary utilities
-│   └── qdrant                    # Local Qdrant server binary (macOS arm64 native)
+├── scripts/                      # Utility and verification scripts
+│   ├── test_simple_workflow.py   # 4-ingredient cosmetic analysis test
+│   ├── test_relevance_gate.py    # Energy drink rejection test (non-cosmetic gate)
+│   └── test_complete_workflow.py # Full scenario test
 │
-├── data/                         # Local database storage
-│   ├── processed/                # Pre-processed cosmetic ingredients datasets
-│   │   ├── ingredients_final.json
-│   │   └── ingredients_with_embeddings.json
-│   └── qdrant_storage/           # Local Qdrant DB vector storage
-│
-├── scripts/                      # Utility and verification test scripts
-│   ├── populate_ingredient_details.py # Gemini-powered database populator & vector seeder
-│   ├── test_simple_workflow.py   # Simple 2-agent safety analysis test scenario
-│   ├── test_complete_workflow.py # Full 4-agent safety analysis test scenario
-│   └── test_all_scenarios.py     # Aggregated test scenarios runner
-│
-└── test-integration.sh           # End-to-end API integration tests
+├── README.md
+├── DEPLOYMENT.md
+└── WORKFLOW_EXPLAINER.md
 ```
 
 ---
@@ -145,17 +169,14 @@ Cosmet/
 ### Prerequisites
 - Python 3.12+
 - Node.js 20+
-- Qdrant Cloud (or running local instance) and Redis Cloud credentials
+- Qdrant Cloud cluster URL & API key
+- Redis Cloud connection URI
+- Google Cloud project with OAuth 2.0 Client ID
+- Gemini API key (`GOOGLE_API_KEY`)
+- Tavily API key
 
-### 1. Database Setup (Local Qdrant)
-Start the local Qdrant server instance using the pre-compiled native macOS Apple Silicon binary pointing to the pre-populated local storage folder:
-```bash
-# From the project root directory
-QDRANT__STORAGE__STORAGE_PATH="data/qdrant_storage/storage" ./bin/qdrant
-```
-*The local Qdrant server will run and listen at `http://localhost:6333`.*
+### Backend Setup
 
-### 2. Backend Setup
 1. **Navigate to backend and create virtual environment**:
    ```bash
    cd backend
@@ -167,94 +188,85 @@ QDRANT__STORAGE__STORAGE_PATH="data/qdrant_storage/storage" ./bin/qdrant
    ```bash
    pip install -r requirements.txt
    ```
+   > **Note**: This installs `fastembed==0.5.1` (ONNX Runtime). PyTorch is **not** required.
 
-3. **Configure Environment Variables**:
-   Create a `backend/.env` file:
-   ```bash
-   SECRET_KEY=your_super_secret_jwt_key
+3. **Configure Environment Variables** — create `backend/.env`:
+   ```env
+   SECRET_KEY=your_super_secret_jwt_key_min_32_chars
    GOOGLE_API_KEY=your_gemini_api_key
+   GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
    TAVILY_API_KEY=your_tavily_api_key
-   QDRANT_URL=http://localhost:6333
-   QDRANT_API_KEY=
-   REDIS_URL=redis://localhost:6379/0
+   QDRANT_URL=https://your-cluster.gcp.qdrant.io:6333
+   QDRANT_API_KEY=your_qdrant_api_key
+   REDIS_URL=redis://default:password@your-redis-endpoint:port
    ```
 
-4. **Start the API Server**:
+4. **Seed the Qdrant Database** (first time only):
+   ```bash
+   python3 ../scripts/populate_ingredient_details.py
+   ```
+
+5. **Start the API Server**:
    ```bash
    uvicorn app.main:app --reload --port 8000
    ```
 
-### 3. Frontend Setup
+### Frontend Setup
 
-1. **Navigate to frontend**:
+1. **Navigate to frontend and install**:
    ```bash
-   cd ../frontend
+   cd frontend
    npm install
    ```
 
-2. **Configure Environment Variables**:
-   Create a `frontend/.env.local` file:
-   ```bash
+2. **Configure Environment Variables** — create `frontend/.env.local`:
+   ```env
    NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
    NEXT_PUBLIC_WS_URL=ws://127.0.0.1:8000
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
    ```
 
-3. **Run Developer Server**:
+3. **Run Development Server**:
    ```bash
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000) to view the application.
+   Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
 ## 🧪 Testing & Validation
 
-### 1. Verification Scripts (Root)
-Ensure the local Qdrant server is running, then execute any of the verification scripts from the root directory:
 ```bash
-# Test the basic supervisor routing and research agent retrieval
+# Test the 4-agent cosmetic analysis workflow (Niacinamide, Glycerin, Hyaluronic Acid, Water)
 python3 scripts/test_simple_workflow.py
 
-# Test the complete 4-agent cycle (Supervisor -> Research -> Analysis -> Critic) under allergen rules
+# Test the Product Relevance Gate — verify energy drink ingredients are rejected
+python3 scripts/test_relevance_gate.py
+
+# Full multi-scenario test (beginner, sensitive skin, expert, allergen matching)
 python3 scripts/test_complete_workflow.py
-
-# Run the complete agent analysis workflow against all scenarios (Beginner, Sensitive, Expert)
-python3 scripts/test_all_scenarios.py
-```
-
-### 2. Populating/Re-seeding the Database
-If you need to re-seed or populate missing ingredient details (e.g., purpose, description, EWG safety score) dynamically using the Gemini API and regenerate vector embeddings:
-```bash
-python3 scripts/populate_ingredient_details.py
-```
-*(This script includes automated rate limiting and skips already-populated ingredients to prevent API issues).*
-
-### 3. End-to-End API Integration Testing
-Run the root integration test shell script, which automatically verifies backend API auth flows and agent analysis pipelines:
-```bash
-./test-integration.sh
 ```
 
 ---
 
 ## 📦 Deployment
 
-Complete step-by-step setup, custom domains, monitoring, and cost considerations are documented in [DEPLOYMENT.md](file:///Users/shubhamkumar/Desktop/Cosmet/DEPLOYMENT.md).
+Full step-by-step instructions are in [DEPLOYMENT.md](./DEPLOYMENT.md).
 
-- **Backend**: Deploys to Render via Web Services (linked via `backend/Procfile` and `backend/render.yaml`).
-- **Frontend**: Deploys to Vercel (linked via `frontend/vercel.json`).
+- **Backend**: Deploys to **Render** (Web Service, Python 3.12, `backend/` root directory).
+- **Frontend**: Deploys to **Vercel** (Next.js, `frontend/` root directory, standalone output).
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **AI Agents Intensive** - Capstone project framework and guidance.
-- **Google Gemini Team** - Gemini 3.1 Flash Lite API access.
-- **LangChain/LangGraph** - Multi-agent orchestration framework.
-- **Qdrant Team** - Vector database for semantic search.
+- **Google Gemini Team** — Gemini 3.1 Flash Lite API access.
+- **LangChain / LangGraph** — Multi-agent orchestration framework.
+- **Qdrant Team** — Vector database + FastEmbed library.
+- **Tavily** — AI-optimized web search API.
 - **Data Sources:**
-  - [incidecoder.com](https://incidecoder.com/) - Ingredient purposes and descriptions.
-  - [cosmeticsinfo.org](https://www.cosmeticsinfo.org/) - Safety information.
-  - [EWG Skin Deep](https://www.ewg.org/skindeep/) - Safety scores and ratings.
+  - [incidecoder.com](https://incidecoder.com/) — Ingredient purposes and descriptions.
+  - [cosmeticsinfo.org](https://www.cosmeticsinfo.org/) — Safety information.
+  - [EWG Skin Deep](https://www.ewg.org/skindeep/) — Safety scores and ratings.
 
 *Built with ❤️ by Cosmet*

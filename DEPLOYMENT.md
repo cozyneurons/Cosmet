@@ -1,153 +1,181 @@
 # Cosmet - Deployment Guide
 
-This guide details the step-by-step instructions for deploying the **Cosmet** (Cosmetic Ingredient Analyzer) system to production, featuring a Next.js (React + TypeScript) frontend and a FastAPI backend.
+This guide details the step-by-step instructions for deploying **Cosmet** (Cosmetic Ingredient Analyzer) to production, featuring a Next.js frontend on Vercel and a FastAPI backend on Render.
 
 ---
 
 ## 🏗️ Production Architecture
 
-- **Frontend**: Next.js App Router (React + TypeScript) deployed on **Vercel**.
-- **Backend API**: FastAPI (Python 3.12) deployed on **Render** as a Web Service.
-- **Vector Database**: **Qdrant Cloud** (free tier/paid cluster) for semantic ingredient searches.
-- **Cache & Session Stores**: **Redis Cloud** for JWT blocklists, rate limiting, and short-term analysis sessions.
-- **Monitoring**: **Sentry** (for FastAPI application exceptions) + **Vercel Analytics** & **Google Analytics** (for frontend interaction tracking) + **LangSmith** (for agent decision traces).
+| Layer | Service | Notes |
+|---|---|---|
+| **Frontend** | Vercel | Next.js 14, standalone output (~39 MB) |
+| **Backend API** | Render (Web Service) | FastAPI, Python 3.12, Uvicorn |
+| **Vector Database** | Qdrant Cloud | 68 seeded cosmetic ingredients, 384-dim vectors |
+| **Cache & Sessions** | Redis Cloud | User profiles, analysis history, rate limiting |
+| **Auth** | Google OAuth 2.0 | Passwordless — no bcrypt, no email/password |
+| **Embeddings** | FastEmbed (ONNX) | Ships with the backend, no GPU required |
+| **Web Search Fallback** | Tavily API | Triggered when Qdrant confidence < 0.7 |
 
 ---
 
-## 🛠️ Step 1: Database Setup
+## 🛠️ Step 1: Cloud Database Setup
 
-### 1. Qdrant Cloud Setup
+### 1. Qdrant Cloud
 1. Log in to [Qdrant Cloud Console](https://cloud.qdrant.io).
-2. Create a new cluster (use the Free Tier - 1GB storage / 0.5 vCPU).
-3. Generate and record the **API Key** and the **Cluster URL** (e.g., `https://xxxxxx-xxxxxx.gcp.qdrant.io:6333`).
-4. Keep the credentials handy for backend environment variables.
+2. Create a new cluster (Free Tier — 1 GB storage / 0.5 vCPU is sufficient).
+3. Copy the **Cluster URL** (e.g., `https://xxxxxx.gcp.qdrant.io:6333`) and generate an **API Key**.
+4. After deployment, seed the database from your local machine:
+   ```bash
+   cd backend
+   source venv/bin/activate
+   QDRANT_URL=https://your-cluster.gcp.qdrant.io:6333 QDRANT_API_KEY=your_key python3 ../scripts/populate_ingredient_details.py
+   ```
 
-### 2. Redis Cloud Setup
+### 2. Redis Cloud
 1. Log in to [Redis Cloud](https://redis.com/try-free/).
-2. Create a new subscription and database (use the Free Tier - 30MB).
-3. Retrieve the Redis connection URI under the database settings:
+2. Create a Free Tier database (30 MB is sufficient).
+3. Copy the connection URI from database settings:
    ```
    redis://default:YOUR_PASSWORD@YOUR_REDIS_ENDPOINT:PORT
    ```
-4. Note the connection URI for the backend configuration.
 
 ---
 
 ## ⚡ Step 2: Backend Deployment (Render)
 
-The backend code is situated in the `backend/` directory.
+### Deployment Files
+Ensure these files exist in `backend/`:
 
-### 1. Production Configuration Files
-Ensure the following deployment files are present:
-- **`backend/Procfile`**:
-  ```procfile
-  web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-  ```
-- **`backend/runtime.txt`**:
-  ```text
-  python-3.12
-  ```
-- **`backend/render.yaml`**: Standard blueprint declaring Render specifications.
+**`backend/Procfile`**:
+```procfile
+web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
 
-### 2. Deployment Steps
+**`backend/runtime.txt`**:
+```
+python-3.12
+```
+
+### Deployment Steps
 1. Push your repository to GitHub.
-2. Sign in to [Render](https://render.com).
-3. Click **New** > **Web Service**.
-4. Connect your GitHub repository.
-5. In the service configuration settings:
-   - **Name**: `cosmet-api` (or custom name)
+2. Sign in to [Render](https://render.com) → **New** → **Web Service**.
+3. Connect your GitHub repository.
+4. Configure the service:
    - **Root Directory**: `backend`
    - **Runtime**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-6. Add the following **Environment Variables** in the Render console:
+
+5. Add **Environment Variables** in the Render dashboard:
 
 | Key | Value | Description |
 |---|---|---|
-| `PORT` | `8000` | Port for the FastAPI server |
-| `SECRET_KEY` | *(Generate a cryptographically secure key)* | Secret key for signing JWT tokens |
-| `GOOGLE_API_KEY` | *(Your Gemini API key)* | Credentials to access Gemini models |
-| `TAVILY_API_KEY` | *(Your Tavily API key)* | Fallback search API credential |
-| `QDRANT_URL` | `https://xxxxxx.gcp.qdrant.io:6333` | Qdrant cluster endpoint |
-| `QDRANT_API_KEY` | *(Your Qdrant API key)* | Authn key for vector store access |
-| `REDIS_URL` | `redis://default:password@endpoint:port` | Redis connection URL |
-| `LANGSMITH_API_KEY` | *(Optional, LangSmith key)* | For tracking agent execution |
-| `LANGSMITH_PROJECT` | `cosmet` | Project identifier for LangSmith traces |
-| `SENTRY_DSN` | *(Optional, Sentry client key)* | Sentry client integration DSN |
+| `SECRET_KEY` | *(generate a 32+ char random string)* | Signs JWT access & refresh tokens |
+| `GOOGLE_API_KEY` | *(Gemini API key)* | Powers all 4 LangGraph agents |
+| `GOOGLE_CLIENT_ID` | *(OAuth 2.0 Client ID)* | Verifies Google ID tokens on `/auth/google` |
+| `TAVILY_API_KEY` | *(Tavily API key)* | Web search fallback for unknown ingredients |
+| `QDRANT_URL` | `https://xxxxxx.gcp.qdrant.io:6333` | Qdrant Cloud cluster endpoint |
+| `QDRANT_API_KEY` | *(Qdrant API key)* | Authentication for vector store access |
+| `REDIS_URL` | `redis://default:password@endpoint:port` | Redis Cloud connection URI |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | JWT access token lifetime |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | JWT refresh token lifetime |
 
-7. Click **Deploy Web Service**. Render will build the environment and host it at `https://cosmet-api.onrender.com`.
+6. Click **Deploy Web Service**. Backend will be live at `https://cosmet-api.onrender.com`.
+
+> **Note**: The first deploy downloads the FastEmbed ONNX model (~22 MB). Subsequent starts use the Render build cache.
 
 ---
 
 ## 🖥️ Step 3: Frontend Deployment (Vercel)
 
-The frontend is a Next.js single-page application under the `frontend/` directory.
+### `next.config.ts`
+The frontend uses `output: "standalone"` to produce a lean production bundle:
+```ts
+const nextConfig = {
+  output: "standalone",
+};
+export default nextConfig;
+```
+This reduces the build artifact from ~1 GB to ~39 MB.
 
-### 1. vercel.json
-The frontend project includes `frontend/vercel.json` defining Next.js configurations:
+### `frontend/vercel.json`
 ```json
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "https://cosmet-api.onrender.com",
-    "NEXT_PUBLIC_WS_URL": "wss://cosmet-api.onrender.com"
-  }
+  "framework": "nextjs"
 }
 ```
 
-### 2. Deployment Steps
-1. Log in to [Vercel](https://vercel.com).
-2. Click **Add New** > **Project** and select your GitHub repository.
-3. In the project setup settings:
+### Deployment Steps
+1. Log in to [Vercel](https://vercel.com) → **Add New** → **Project**.
+2. Select your GitHub repository.
+3. Configure:
    - **Root Directory**: `frontend`
    - **Framework Preset**: `Next.js`
-   - **Build and Output Settings**: Leave as defaults.
-4. Add the **Environment Variables** in the Vercel project dashboard:
-   - `NEXT_PUBLIC_API_URL`: `https://cosmet-api.onrender.com` (Your Render backend HTTPS URL)
-   - `NEXT_PUBLIC_WS_URL`: `wss://cosmet-api.onrender.com` (Your Render backend WSS WebSocket URL)
-5. Click **Deploy**. Vercel will build the Next.js pages and host the frontend at `https://cosmet.vercel.app`.
+4. Add **Environment Variables** in the Vercel dashboard:
+
+| Key | Value |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `https://cosmet-api.onrender.com` |
+| `NEXT_PUBLIC_WS_URL` | `wss://cosmet-api.onrender.com` |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | *(Your Google OAuth 2.0 Client ID)* |
+
+5. Click **Deploy**. Frontend will be live at `https://cosmet.vercel.app`.
 
 ---
 
-## 🔒 Step 4: Security Hardening
+## 🔐 Step 4: Google OAuth Setup
 
-### 1. Enabling HTTPS & WSS
-Both Vercel and Render automatically configure free managed Let's Encrypt SSL/TLS certificates. All backend endpoints and WebSocket channels are automatically accessed over secure `https://` and `wss://` protocols.
+1. Go to [Google Cloud Console](https://console.cloud.google.com) → **APIs & Services** → **Credentials**.
+2. Create an **OAuth 2.0 Client ID** (Web Application type).
+3. Add **Authorized JavaScript Origins**:
+   ```
+   https://cosmet.vercel.app
+   http://localhost:3000
+   ```
+4. Add **Authorized Redirect URIs** (not required for the implicit flow, but good practice):
+   ```
+   https://cosmet.vercel.app/login
+   ```
+5. Copy the **Client ID** into both the Render (`GOOGLE_CLIENT_ID`) and Vercel (`NEXT_PUBLIC_GOOGLE_CLIENT_ID`) environment variables.
 
-### 2. CORS Configurations
-In `backend/app/core/config.py`, verify that backend origins align with your production URL:
+---
+
+## 🔒 Step 5: Security Hardening
+
+### CORS Configuration
+In `backend/app/core/config.py`, verify CORS origins match your production URL:
 ```python
 BACKEND_CORS_ORIGINS = [
     "https://cosmet.vercel.app",
-    "https://your-custom-domain.com"
+    "https://your-custom-domain.com",
+    "http://localhost:3000",
 ]
 ```
 
-### 3. Allowed Hosts Middleware
-In `backend/app/main.py`, you can enable host limits:
+### Trusted Host Middleware (Optional)
+In `backend/app/main.py`:
 ```python
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["cosmet-api.onrender.com", "your-custom-domain.com", "127.0.0.1", "localhost"]
+    allowed_hosts=["cosmet-api.onrender.com", "your-custom-domain.com", "localhost"]
 )
 ```
 
 ---
 
-## 🩺 Step 5: Monitoring & Analytics
+## 🩺 Step 6: Monitoring
 
-### 1. Sentry (Error Tracking)
-Install the Sentry SDK in your backend dependency:
+### Sentry (Backend Error Tracking)
 ```bash
 pip install sentry-sdk[fastapi]
 ```
-Add initialization to `backend/app/main.py`:
+In `backend/app/main.py`:
 ```python
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -158,71 +186,55 @@ sentry_sdk.init(
     traces_sample_rate=1.0,
 )
 ```
+Add `SENTRY_DSN` to Render environment variables.
 
-### 2. Vercel Web Analytics
-Vercel Web Analytics is automatically integrated when toggling it on inside the Vercel dashboard project settings.
-
-### 3. Google Analytics (GA4)
-Inject Google Tag scripts dynamically in `frontend/src/app/layout.tsx`:
-```tsx
-import Script from 'next/script';
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'GA_MEASUREMENT_ID');
-          `}
-        </Script>
-        {children}
-      </body>
-    </html>
-  );
-}
-```
+### Vercel Analytics
+Toggle on in the Vercel dashboard under **Analytics** — no code changes needed.
 
 ---
 
-## 🔄 Step 6: Backup & Maintenance
+## 🔄 Step 7: Backup & Maintenance
 
-### 1. Cache Backups
-Redis Cloud takes automatic daily snapshots of cached databases. You can manage storage schedules, backup durations, and replication layers in the Redis Cloud database control settings.
-
-### 2. Vector DB Replications
-Qdrant Cloud handles storage persistence and replication strategies natively on cloud clusters. To run a manual local backup:
+### Qdrant Snapshot
 ```bash
-# Snapshot a Qdrant collection
-curl -X POST http://localhost:6333/collections/ingredients/snapshots
+# Snapshot the cosmetic_ingredients collection
+curl -X POST https://your-cluster.gcp.qdrant.io:6333/collections/cosmetic_ingredients/snapshots \
+  -H "api-key: YOUR_QDRANT_API_KEY"
 ```
 
-### 3. Rollbacks
-- **Backend (Render)**: Navigate to the web service dashboard, click **Deployments**, locate the last working commit, and select **Rollback to this deploy**.
-- **Frontend (Vercel)**: Select your project on the Vercel dashboard, click **Deployments**, locate the stable deployment, and click **Promote to Production** or **Redeploy**.
+### Re-seeding the Database
+If you need to add new ingredients or re-seed from scratch:
+```bash
+cd backend
+python3 ../scripts/populate_ingredient_details.py
+```
+The script skips already-populated ingredients and applies automated rate limiting.
+
+### Rollbacks
+- **Backend (Render)**: Deployments → locate last stable commit → **Rollback**.
+- **Frontend (Vercel)**: Deployments → locate stable deployment → **Promote to Production**.
 
 ---
 
 ## 🚨 Troubleshooting
 
-### 1. WebSocket Disconnection (`code 1006`)
-- Ensure the connection URI is `wss://` instead of `ws://` in production.
-- Confirm Render's HTTP/2 or WebSocket configurations. High latency on Render's free tier can sleep instances; access the `/health` endpoint to wake them up.
+### FastEmbed model download fails on Render
+The model is downloaded on first run. If it times out:
+- Increase Render's build timeout.
+- Or pre-download and cache it in your Docker image if using a custom Dockerfile.
 
-### 2. CORS Exceptions
-- Double-check that `NEXT_PUBLIC_API_URL` environment variable has no trailing slashes.
-- Add the Vercel domain to the `BACKEND_CORS_ORIGINS` list inside the backend environment configurations.
+### WebSocket Disconnection (`code 1006`)
+- Ensure `NEXT_PUBLIC_WS_URL` uses `wss://` (not `ws://`) in production.
+- Render free tier instances sleep after inactivity — hit the `/health` endpoint to wake them.
 
-### 3. HuggingFace / Dataset Import Errors
-If the server crashes on start:
-- Ensure the datasets package version matches `5.0.0` or higher to resolve namespace clashes:
-  ```bash
-  pip install datasets>=5.0.0
-  ```
+### Google OAuth `invalid_grant` Error
+- Double-check the `GOOGLE_CLIENT_ID` in both Render and Vercel matches the same Google Cloud credential.
+- Ensure your Vercel domain is listed under **Authorized JavaScript Origins** in Google Cloud Console.
+
+### CORS Errors
+- Confirm `NEXT_PUBLIC_API_URL` has **no trailing slash**.
+- Add the Vercel deployment URL (including any preview URLs) to `BACKEND_CORS_ORIGINS` in `config.py`.
+
+### Qdrant Low Confidence (All Ingredients Falling Back to Tavily)
+- The database may not be seeded. Run `populate_ingredient_details.py` against your production Qdrant cluster.
+- Verify `QDRANT_URL` and `QDRANT_API_KEY` are correctly set in Render environment variables.
