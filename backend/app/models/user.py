@@ -9,12 +9,6 @@ class UserBase(BaseModel):
     sex: str = "Prefer not to say"
     country: Optional[str] = None
 
-class UserCreate(UserBase):
-    password: str = Field(..., min_length=8)
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
 
 class UserResponse(UserBase):
     id: str

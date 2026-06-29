@@ -16,16 +16,3 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface RegisterData {
-  email: string;
-  name: string;
-  age_group: string;
-  sex: string;
-  country?: string;
-  password: string;
-}
